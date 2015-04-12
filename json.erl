@@ -1,17 +1,24 @@
 %% Minimal JSON parsing module that both encodes and decodes.
-%% JSON types are mapped to Erlang terms as follows:
+%% When encoding, JSON types are mapped to Erlang terms as follows:
 %%
 %% * JSON object is Erlang map
 %% * JSON string is Erlang binary
 %% * JSON list is Erlang list
-%% * JSON numbers are Erlang numbers, but exponent is not supported
+%% * JSON numbers are Erlang numbers
+%%
+%% When decoding, everything is vice versa except strings. Strings are
+%% parsed to lists. You can alter this behavior to fit your preferences
+%% by editing decode_string/2 in this file.
 -module(json).
 
 -export([encode/1, decode/1]).
 -define(is_digit(X), X >= 48, X =< 57).
--define(is_space(X), X == $\t, X == $\s, X == $\t, X == $\n).
+-define(is_space(X), X == $\t; X == $\s; X == $\t; X == $\n).
 
-encode(Bin) when is_binary(Bin) -> <<"\"", Bin/binary, "\"">>; 
+encode(Bin) when is_binary(Bin) ->
+    EscapeCodes = [<<"\b">>, <<"\f">>, <<"\n">>, <<"\r">>, <<"\t">>, <<"\"">>, <<"\\">>],
+    EscapedBin = binary:replace(Bin, EscapeCodes, <<"\\">>, [{insert_replaced,1}]), 
+    <<"\"", EscapedBin/binary, "\"">>; 
 encode(I) when is_integer(I) -> integer_to_binary(I);
 encode(M) when is_map(M) -> encode_map(maps:to_list(M), []);
 encode(L) when is_list(L) -> encode_list(L, []);
@@ -74,6 +81,17 @@ decode_integer(Chars, Buf) -> {list_to_integer(lists:reverse(Buf)), Chars}.
 decode_float([H|T], Buf) when ?is_digit(H) -> decode_float(T, [H|Buf]);
 decode_float(Chars, Buf) -> {list_to_float(lists:reverse(Buf)), Chars}.
 
+decode_string([$\\|Chars], Buf) ->
+    Char = hd(Chars),
+    EscapeCode = case Char of
+        $b -> $\s;
+        $f -> $\f;
+        $n -> $\n;
+        $r -> $\r;
+        $t -> $\t;
+        Char -> Char
+    end,
+    decode_string(tl(Chars), [EscapeCode|Buf]);
 decode_string([$"|Chars], Buf) -> {lists:reverse(Buf), Chars};
 decode_string([H|T], Buf) -> decode_string(T, [H|Buf]).
 

@@ -1,15 +1,15 @@
+%% Minimal JSON parsing module that both encodes and decodes.
+%% JSON types are mapped to Erlang terms as follows:
+%%
+%% * JSON object is Erlang map
+%% * JSON string is Erlang binary
+%% * JSON list is Erlang list
+%% * JSON numbers are Erlang numbers, but exponent is not supported
 -module(json).
+
 -export([encode/1, decode/1]).
-
-%%% JSON.erl is a minimal JSON parsing module. It both encodes and decodes.
-%%% JSON types are mapped to Erlang terms as follows (for both encode/1 and decode/1):
-%%% * JSON object is Erlang map
-%%% * JSON string is Erlang binary
-%%% * JSON list is Erlang list
-%%% * JSON numbers are Erlang numbers, but exponent is not supported
-
--define(DIGIT_START, 48).
--define(DIGIT_END, 57).
+-define(is_digit(X), X >= 48, X =< 57).
+-define(is_space(X), X == $\t, X == $\s, X == $\t, X == $\n).
 
 encode(Bin) when is_binary(Bin) -> <<"\"", Bin/binary, "\"">>; 
 encode(I) when is_integer(I) -> integer_to_binary(I);
@@ -20,7 +20,7 @@ encode(false) -> <<"false">>;
 encode(null) -> <<"null">>;
 encode(A) when is_atom(A) -> encode(list_to_binary(atom_to_list(A))).
 
-%% @doc Wraps a list of binaries with First and Last elements and concatenates them all.
+%% Wraps a list of binaries with First and Last elements and concatenates them all.
 wrap(List, First, Last) -> iolist_to_binary([First | lists:reverse([Last | List])]).
 
 add_comma(Bin) -> <<Bin/binary, ",">>.
@@ -47,7 +47,7 @@ decode([$[|T], []) ->
     {lists:reverse(List), Rest};
 
 decode([${|T], []) -> decode_map(T, #{});
-decode([$ |T], []) -> decode(T, []);
+decode([H|T], []) when ?is_space(H) -> decode(T, []);
 
 decode([$t|T], []) -> decode(T, "t");
 decode([$r|T], "t") -> decode(T, "tr");
@@ -65,13 +65,13 @@ decode([$u|T], "n") -> decode(T, "nu");
 decode([$l|T], "nu") -> decode(T, "nul");
 decode([$l|T], "nul") -> {null, T};
 
-decode(Chars=[H|_], []) when H >= ?DIGIT_START, H =< ?DIGIT_END -> decode_integer(Chars, []).
+decode(Chars=[H|_], []) when ?is_digit(H) -> decode_integer(Chars, []).
 
-decode_integer([H|T], Buf) when H >= ?DIGIT_START, H =< ?DIGIT_END -> decode_integer(T, [H|Buf]);
+decode_integer([H|T], Buf) when ?is_digit(H) -> decode_integer(T, [H|Buf]);
 decode_integer([$.|T], Buf) -> decode_float(T, [$.|Buf]);
 decode_integer(Chars, Buf) -> {list_to_integer(lists:reverse(Buf)), Chars}.
 
-decode_float([H|T], Buf) when H >= ?DIGIT_START, H =< ?DIGIT_END -> decode_float(T, [H|Buf]);
+decode_float([H|T], Buf) when ?is_digit(H) -> decode_float(T, [H|Buf]);
 decode_float(Chars, Buf) -> {list_to_float(lists:reverse(Buf)), Chars}.
 
 decode_string([$"|Chars], Buf) -> {lists:reverse(Buf), Chars};
@@ -79,18 +79,14 @@ decode_string([H|T], Buf) -> decode_string(T, [H|Buf]).
 
 decode_list([$] |Chars]) -> [Chars];
 decode_list([$, |Chars]) -> decode_list(Chars);
-decode_list([$\n|Chars]) -> decode_list(Chars);
-decode_list([$\t|Chars]) -> decode_list(Chars);
-decode_list([$  |Chars]) -> decode_list(Chars);
+decode_list([H|T]) when ?is_space(H) -> decode_list(T);
 decode_list(Chars) ->
     {Value, Rest} = decode(Chars, []),
     [Value|decode_list(Rest)].
 
-decode_map([$} |Chars], Map) -> {Map, Chars};
-decode_map([$, |Chars], Map) -> decode_map(Chars, Map);
-decode_map([$\n|Chars], Map) -> decode_map(Chars, Map);
-decode_map([$\t|Chars], Map) -> decode_map(Chars, Map);
-decode_map([$  |Chars], Map) -> decode_map(Chars, Map);
+decode_map([$}|Chars], Map) -> {Map, Chars};
+decode_map([$,|Chars], Map) -> decode_map(Chars, Map);
+decode_map([H|T], Map) when ?is_space(H) -> decode_map(T, Map);
 decode_map(Chars, Map) ->
     {Key, Rest} = decode(Chars, []),
     {ok, Rest2} = decode_colon(Rest),
@@ -98,6 +94,4 @@ decode_map(Chars, Map) ->
     decode_map(Rest3, maps:put(Key, Value, Map)).
 
 decode_colon([$:|T]) -> {ok, T};
-decode_colon([$\t|T]) -> decode_colon(T);
-decode_colon([$\n|T]) -> decode_colon(T);
-decode_colon([$ |T]) -> decode_colon(T).
+decode_colon([H|T]) when ?is_space(H) -> decode_colon(T).

@@ -17,7 +17,13 @@
 -define(is_space(X), X == $\t; X == $\s; X == $\t; X == $\n).
 
 encode(Bin) when is_binary(Bin) ->
-    EscapedBin = escape(Bin), 
+    Substitutions = [
+        {<<"\\">>, <<"\\\\">>}, {<<"\"">>, <<"\\\"">>},
+        {<<"\f">>, <<"\\f">>}, {<<"\n">>, <<"\\n">>},  
+        {<<"\r">>, <<"\\r">>}, {<<"\t">>, <<"\\t">>}
+    ],
+    EscapedBin = lists:foldl(fun({K,V}, Acc) -> binary:replace(Acc, K, V) end,
+                             Bin, Substitutions),
     <<"\"", EscapedBin/binary, "\"">>; 
 encode(I) when is_integer(I) -> integer_to_binary(I);
 encode(F) when is_float(F) -> float_to_binary(F);
@@ -28,17 +34,8 @@ encode(false) -> <<"false">>;
 encode(null) -> <<"null">>;
 encode(A) when is_atom(A) -> encode(list_to_binary(atom_to_list(A))).
 
-escape(Bin) ->
-    Subs = [
-        {<<"\\">>, <<"\\\\">>}, {<<"\"">>, <<"\\\"">>},
-        {<<"\f">>, <<"\\f">>}, {<<"\n">>, <<"\\n">>},  
-        {<<"\r">>, <<"\\r">>}, {<<"\t">>, <<"\\t">>}
-    ],
-    lists:foldl(fun({K,V},Acc) -> binary:replace(Acc, K, V) end, Bin, Subs).
-
 %% Wraps a list of binaries with First and Last and concatenates them all.
 wrap(L, First, Last) -> iolist_to_binary([First | lists:reverse([Last | L])]).
-
 add_comma(Bin) -> <<Bin/binary, ",">>.
 
 encode_list([], Acc) -> wrap(Acc, <<"[">>, <<"]">>);
@@ -89,16 +86,16 @@ decode_float([H|T], Buf) when ?is_digit(H); H == $e; H == $E; H == $+ ->
 decode_float(Chars, Buf) -> {Chars, list_to_float(lists:reverse(Buf))}.
 
 decode_string([$\\|Chars], Buf) ->
-    Char = hd(Chars),
-    EscapeCode = case Char of
+    NextChar = hd(Chars),
+    SpecialChar = case NextChar of
         $b -> $\s;
         $f -> $\f;
         $n -> $\n;
         $r -> $\r;
         $t -> $\t;
-        Char -> Char
+        NextChar -> NextChar
     end,
-    decode_string(tl(Chars), [EscapeCode|Buf]);
+    decode_string(tl(Chars), [SpecialChar|Buf]);
 decode_string([$"|Chars], Buf) -> {Chars, lists:reverse(Buf)};
 decode_string([H|T], Buf) -> decode_string(T, [H|Buf]).
 

@@ -29,15 +29,15 @@ encode(null) -> <<"null">>;
 encode(A) when is_atom(A) -> encode(list_to_binary(atom_to_list(A))).
 
 escape(Bin) ->
-    Substitutions = [
+    Subs = [
         {<<"\\">>, <<"\\\\">>}, {<<"\"">>, <<"\\\"">>},
         {<<"\f">>, <<"\\f">>}, {<<"\n">>, <<"\\n">>},  
         {<<"\r">>, <<"\\r">>}, {<<"\t">>, <<"\\t">>}
     ],
-    lists:foldl(fun({K,V},Acc) -> binary:replace(Acc, K, V) end, Bin, Substitutions).
+    lists:foldl(fun({K,V},Acc) -> binary:replace(Acc, K, V) end, Bin, Subs).
 
-%% Wraps a list of binaries with First and Last elements and concatenates them all.
-wrap(List, First, Last) -> iolist_to_binary([First | lists:reverse([Last | List])]).
+%% Wraps a list of binaries with First and Last and concatenates them all.
+wrap(L, First, Last) -> iolist_to_binary([First | lists:reverse([Last | L])]).
 
 add_comma(Bin) -> <<Bin/binary, ",">>.
 

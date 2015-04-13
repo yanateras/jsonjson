@@ -84,7 +84,8 @@ decode_integer([H|T], Buf) when ?is_digit(H) -> decode_integer(T, [H|Buf]);
 decode_integer([$.|T], Buf) -> decode_float(T, [$.|Buf]);
 decode_integer(Chars, Buf) -> {Chars, list_to_integer(lists:reverse(Buf))}.
 
-decode_float([H|T], Buf) when ?is_digit(H) -> decode_float(T, [H|Buf]);
+decode_float([H|T], Buf) when ?is_digit(H); H == $e; H == $E; H == $+ ->
+    decode_float(T, [H|Buf]);
 decode_float(Chars, Buf) -> {Chars, list_to_float(lists:reverse(Buf))}.
 
 decode_string([$\\|Chars], Buf) ->

@@ -75,7 +75,7 @@ decode([$u|T], "n") -> decode(T, "nu");
 decode([$l|T], "nu") -> decode(T, "nul");
 decode([$l|T], "nul") -> {T, null};
 
-decode(Chars=[H|_], []) when ?is_digit(H) -> decode_integer(Chars, []).
+decode([H|T], []) when ?is_digit(H); H == $- -> decode_integer(T, [H]).
 
 decode_integer([H|T], Buf) when ?is_digit(H) -> decode_integer(T, [H|Buf]);
 decode_integer([$.|T], Buf) -> decode_float(T, [$.|Buf]);

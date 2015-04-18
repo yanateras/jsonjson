@@ -51,7 +51,14 @@ encode_pair({K,V}) ->
     <<Key/binary, ":", Value/binary>>.
 
 decode(Bin) when is_binary(Bin) -> decode(binary_to_list(Bin));
-decode(String) -> {_, Value} = decode(String, []), Value.
+decode(String) ->
+    try
+        decode(String, [])
+    of
+        {_, Value} -> {ok, Value}
+    catch
+       error:Error -> {error, Error} 
+    end.
 
 decode([$"|T], []) -> decode_string(T, []);
 decode([$[|T], []) -> decode_list(T, []);
@@ -99,8 +106,8 @@ decode_string([$\\|Chars], Buf) ->
 decode_string([$"|Chars], Buf) -> {Chars, lists:reverse(Buf)};
 decode_string([H|T], Buf) -> decode_string(T, [H|Buf]).
 
-decode_list([$] |Chars], List) -> {Chars, lists:reverse(List)};
-decode_list([$, |Chars], List) -> decode_list(Chars, List);
+decode_list([$]|Chars], List) -> {Chars, lists:reverse(List)};
+decode_list([$,|Chars], List) -> decode_list(Chars, List);
 decode_list([H|T], List) when ?is_space(H) -> decode_list(T, List);
 decode_list(Chars, List) ->
     {Rest, Value} = decode(Chars, []),

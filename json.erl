@@ -51,7 +51,7 @@ encode_pair({K,V}) ->
     <<Key/binary, ":", Value/binary>>.
 
 decode(Bin) when is_binary(Bin) -> decode(binary_to_list(Bin));
-decode(String) ->
+decode(String) when is_list(String) ->
     try
         decode(String, [])
     of

@@ -66,21 +66,21 @@ decode([${|T], []) -> decode_map(T, #{});
 
 decode([H|T], []) when ?is_space(H) -> decode(T, []);
 
-decode([$t|T], []) -> decode(T, "t");
-decode([$r|T], "t") -> decode(T, "tr");
-decode([$u|T], "tr") -> decode(T, "tru");
-decode([$e|T], "tru") -> {T, true};
+decode([$t|T], []) -> decode(T, t);
+decode([$r|T], t) -> decode(T, tr);
+decode([$u|T], tr) -> decode(T, tru);
+decode([$e|T], tru) -> {T, true};
 
-decode([$f|T], []) -> decode(T, "f");
-decode([$a|T], "f") -> decode(T, "fa");
-decode([$l|T], "fa") -> decode(T, "fal");
-decode([$s|T], "fal") -> decode(T, "fals");
-decode([$e|T], "fals") -> {T, false};
+decode([$f|T], []) -> decode(T, f);
+decode([$a|T], f) -> decode(T, fa);
+decode([$l|T], fa) -> decode(T, fal);
+decode([$s|T], fal) -> decode(T, fals);
+decode([$e|T], fals) -> {T, false};
 
-decode([$n|T], []) -> decode(T, "n");
-decode([$u|T], "n") -> decode(T, "nu");
-decode([$l|T], "nu") -> decode(T, "nul");
-decode([$l|T], "nul") -> {T, null};
+decode([$n|T], []) -> decode(T, n);
+decode([$u|T], n) -> decode(T, nu);
+decode([$l|T], nu) -> decode(T, nul);
+decode([$l|T], nul) -> {T, null};
 
 decode([H|T], []) when ?is_digit(H); H == $- -> decode_integer(T, [H]).
 

@@ -50,77 +50,75 @@ encode_pair({K,V}) ->
     Key = encode(K), Value = encode(V), 
     <<Key/binary, ":", Value/binary>>.
 
-decode(Bin) when is_binary(Bin) -> decode(binary_to_list(Bin));
-decode(String) when is_list(String) ->
+decode(String) when is_list(String) -> decode(list_to_binary(String));
+decode(Bin) when is_binary(Bin) ->
     try
-        decode(String, [])
+        decode(Bin, [])
     of
         {_, Value} -> {ok, Value}
     catch
        error:Error -> {error, Error} 
     end.
 
-decode([$"|T], []) -> decode_string(T, []);
-decode([$[|T], []) -> decode_list(T, []);
-decode([${|T], []) -> decode_map(T, #{});
+decode(<<$", T/binary>>, []) -> decode_string(T, []);
+decode(<<$[, T/binary>>, []) -> decode_list(T, []);
+decode(<<${, T/binary>>, []) -> decode_map(T, #{});
 
-decode([H|T], []) when ?is_space(H) -> decode(T, []);
+decode(<<H, T/binary>>, []) when ?is_space(H) -> decode(T, []);
 
-decode([$t|T], []) -> decode(T, t);
-decode([$r|T], t) -> decode(T, tr);
-decode([$u|T], tr) -> decode(T, tru);
-decode([$e|T], tru) -> {T, true};
+decode(<<$t, T/binary>>, []) -> decode(T, t);
+decode(<<$r, T/binary>>, t) -> decode(T, tr);
+decode(<<$u, T/binary>>, tr) -> decode(T, tru);
+decode(<<$e, T/binary>>, tru) -> {T, true};
 
-decode([$f|T], []) -> decode(T, f);
-decode([$a|T], f) -> decode(T, fa);
-decode([$l|T], fa) -> decode(T, fal);
-decode([$s|T], fal) -> decode(T, fals);
-decode([$e|T], fals) -> {T, false};
+decode(<<$f, T/binary>>, []) -> decode(T, f);
+decode(<<$a, T/binary>>, f) -> decode(T, fa);
+decode(<<$l, T/binary>>, fa) -> decode(T, fal);
+decode(<<$s, T/binary>>, fal) -> decode(T, fals);
+decode(<<$e, T/binary>>, fals) -> {T, false};
 
-decode([$n|T], []) -> decode(T, n);
-decode([$u|T], n) -> decode(T, nu);
-decode([$l|T], nu) -> decode(T, nul);
-decode([$l|T], nul) -> {T, null};
+decode(<<$n, T/binary>>, []) -> decode(T, n);
+decode(<<$u, T/binary>>, n) -> decode(T, nu);
+decode(<<$l, T/binary>>, nu) -> decode(T, nul);
+decode(<<$l, T/binary>>, nul) -> {T, null};
 
-decode([H|T], []) when ?is_digit(H); H == $- -> decode_integer(T, [H]).
+decode(<<H, T/binary>>, []) when ?is_digit(H); H == $- -> decode_integer(T, [H]).
 
-decode_integer([H|T], Buf) when ?is_digit(H) -> decode_integer(T, [H|Buf]);
-decode_integer([$.|T], Buf) -> decode_float(T, [$.|Buf]);
-decode_integer(Chars, Buf) -> {Chars, list_to_integer(lists:reverse(Buf))}.
+decode_integer(<<H, T/binary>>, Buf) when ?is_digit(H) -> decode_integer(T, [H|Buf]);
+decode_integer(<<$., T/binary>>, Buf) -> decode_float(T, [$.|Buf]);
+decode_integer(Bin, Buf) -> {Bin, list_to_integer(lists:reverse(Buf))}.
 
-decode_float([H|T], Buf) when ?is_digit(H); H == $e; H == $E; H == $+ ->
+decode_float(<<H, T/binary>>, Buf) when ?is_digit(H); H == $e; H == $E; H == $+; H == $- ->
     decode_float(T, [H|Buf]);
-decode_float(Chars, Buf) -> {Chars, list_to_float(lists:reverse(Buf))}.
+decode_float(Bin, Buf) -> {Bin, list_to_float(lists:reverse(Buf))}.
 
-decode_string([$\\|Chars], Buf) ->
-    NextChar = hd(Chars),
-    SpecialChar = case NextChar of
+decode_string(<<$\\, Char, T/binary>>, Buf) ->
+    SpecialChar = case Char of
         $b -> $\s;
         $f -> $\f;
         $n -> $\n;
         $r -> $\r;
         $t -> $\t;
-        NextChar -> NextChar
+        Char -> Char
     end,
-    decode_string(tl(Chars), [SpecialChar|Buf]);
-decode_string([$"|Chars], Buf) -> {Chars, lists:reverse(Buf)};
-decode_string([H|T], Buf) -> decode_string(T, [H|Buf]).
+    decode_string(T, [SpecialChar|Buf]);
+decode_string(<<$", T/binary>>, Buf) -> {T, list_to_binary(lists:reverse(Buf))};
+decode_string(<<H, T/binary>>, Buf) -> decode_string(T, [H|Buf]).
 
-decode_list([$]|Chars], List) -> {Chars, lists:reverse(List)};
-decode_list([$,|Chars], List) -> decode_list(Chars, List);
-decode_list([H|T], List) when ?is_space(H) -> decode_list(T, List);
-decode_list(Chars, List) ->
-    {Rest, Value} = decode(Chars, []),
+decode_list(<<$], T/binary>>, List) -> {T, lists:reverse(List)};
+decode_list(<<H, T/binary>>, List) when ?is_space(H); H == $, -> decode_list(T, List);
+decode_list(Bin, List) ->
+    {Rest, Value} = decode(Bin, []),
     decode_list(Rest, [Value|List]).
 
-decode_map([$}|Chars], Map) -> {Chars, Map};
-decode_map([$,|Chars], Map) -> decode_map(Chars, Map);
-decode_map([H|T], Map) when ?is_space(H) -> decode_map(T, Map);
-decode_map(Chars, Map) ->
-    {Rest1, Key} = decode(Chars, []),
+decode_map(<<$}, T/binary>>, Map) -> {T, Map};
+decode_map(<<$,, T/binary>>, Map) -> decode_map(T, Map);
+decode_map(<<H, T/binary>>, Map) when ?is_space(H) -> decode_map(T, Map);
+decode_map(Bin, Map) ->
+    {Rest1, Key} = decode(Bin, []),
     {Rest2, ok} = decode_colon(Rest1),
     {Rest3, Value} = decode(Rest2, []),
     decode_map(Rest3, maps:put(Key, Value, Map)).
 
-decode_colon([$:|T]) -> {T, ok};
-decode_colon([H|T]) when ?is_space(H) -> decode_colon(T).
+decode_colon(<<$:, T/binary>>) -> {T, ok};
+decode_colon(<<H, T/binary>>) when ?is_space(H) -> decode_colon(T).

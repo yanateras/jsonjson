@@ -27,7 +27,7 @@ Eshell V6.4  (abort with ^G)
 <<"{\"age\":25,\"children\":[\"Nick\",\"Travis\"],\"name\":\"Jim\"}">>
 ```
 
-When encoding, JSON types are mapped to Erlang terms as follows:
+When encoding, Erlang terms are mapped to JSON types as follows:
 
 Erlang term | JSON type
 ------------|----------

@@ -36,6 +36,10 @@ binary      | string
 list        | array
 integer     | integer
 float       | float
+true        | true
+false       | false
+null        | null
+atom        | string
 
 Implementations | Microseconds | Baseline speed | Lines of code              | Dependencies      | Pure?
 ----------------|--------------|----------------|----------------------------|-------------------|------

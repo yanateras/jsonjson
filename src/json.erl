@@ -34,21 +34,17 @@ encode(false) -> <<"false">>;
 encode(null) -> <<"null">>;
 encode(A) when is_atom(A) -> encode(list_to_binary(atom_to_list(A))).
 
-%% Wraps a list of binaries with First and Last and concatenates them all.
-wrap(L, First, Last) -> iolist_to_binary([First | lists:reverse([Last | L])]).
-add_comma(Bin) -> <<Bin/binary, ",">>.
-
-encode_list([], Acc) -> wrap(Acc, <<"[">>, <<"]">>);
+encode_list([], Acc) -> [$[ | lists:reverse([$] | Acc])];
 encode_list([H], Acc) -> encode_list([], [encode(H) | Acc]); 
-encode_list([H|T], Acc) -> encode_list(T, [add_comma(encode(H)) | Acc]).
+encode_list([H|T], Acc) -> encode_list(T, [$, | [encode(H) | Acc]]).
 
-encode_map([], Acc) -> wrap(Acc, <<"{">>, <<"}">>);
+encode_map([], Acc) -> [${ | lists:reverse([$} | Acc])];
 encode_map([H], Acc) -> encode_map([], [encode_pair(H) | Acc]); 
-encode_map([H|T], Acc) -> encode_map(T, [add_comma(encode_pair(H)) | Acc]).
+encode_map([H|T], Acc) -> encode_map(T, [$, | [encode_pair(H) | Acc]]).
 
 encode_pair({K,V}) -> 
     Key = encode(K), Value = encode(V), 
-    <<Key/binary, ":", Value/binary>>.
+    [Key, $:, Value].
 
 decode(String) when is_list(String) -> decode(list_to_binary(String));
 decode(Bin) when is_binary(Bin) ->

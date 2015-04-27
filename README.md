@@ -41,6 +41,8 @@ false       | false
 null        | null
 atom        | string
 
+Here is a comparison of JSON encoding between Erlang implementations:
+
 Implementations | Microseconds | Baseline speed | Lines of code              | Dependencies      | Pure?
 ----------------|--------------|----------------|----------------------------|-------------------|------
 [jiffy][]       | 656469       | 5.09x          | 166 Erlang + 2449 C        | double-conversion | ✗

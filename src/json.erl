@@ -90,7 +90,7 @@ decode_float(Bin, Buf) -> {Bin, list_to_float(lists:reverse(Buf))}.
 
 decode_string(<<$\\, $u, C1, C2, C3, C4, T/binary>>, Buf) ->
     Code = list_to_integer([C1, C2, C3, C4], 16),
-    Char = unicode:characters_to_binary([Code], utf8),
+    Char = unicode:characters_to_list([Code], utf8),
     decode_string(T, [Char|Buf]);
 decode_string(<<$\\, Char, T/binary>>, Buf) ->
     SpecialChar = case Char of

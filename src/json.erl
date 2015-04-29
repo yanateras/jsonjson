@@ -17,15 +17,7 @@
 -define(is_space(X), X == $\t; X == $\s; X == $\t; X == $\n).
 -define(is_exponent(X), X == $e; X == $E; X == $+; X == $-).
 
-encode(Bin) when is_binary(Bin) ->
-    Substitutions = [
-        {<<"\\">>, <<"\\\\">>}, {<<"\"">>, <<"\\\"">>},
-        {<<"\f">>, <<"\\f">>}, {<<"\n">>, <<"\\n">>},  
-        {<<"\r">>, <<"\\r">>}, {<<"\t">>, <<"\\t">>}
-    ],
-    EscapedBin = lists:foldl(fun({K,V}, Acc) -> binary:replace(Acc, K, V) end,
-                             Bin, Substitutions),
-    <<"\"", EscapedBin/binary, "\"">>; 
+encode(Bin) when is_binary(Bin) -> encode_string(Bin, []);
 encode(I) when is_integer(I) -> integer_to_binary(I);
 encode(F) when is_float(F) -> float_to_binary(F);
 encode(M) when is_map(M) -> encode_map(maps:to_list(M), []);
@@ -34,6 +26,15 @@ encode(true) -> <<"true">>;
 encode(false) -> <<"false">>;
 encode(null) -> <<"null">>;
 encode(A) when is_atom(A) -> encode(list_to_binary(atom_to_list(A))).
+
+encode_string(<<>>, Acc) -> [$", lists:reverse(Acc), $"];
+encode_string(<<$\r, T/binary>>, Acc) -> encode_string(T, ["\\r"|Acc]);
+encode_string(<<$\t, T/binary>>, Acc) -> encode_string(T, ["\\t"|Acc]);
+encode_string(<<$\n, T/binary>>, Acc) -> encode_string(T, ["\\n"|Acc]);
+encode_string(<<$\f, T/binary>>, Acc) -> encode_string(T, ["\\f"|Acc]);
+encode_string(<<$", T/binary>>, Acc) -> encode_string(T, ["\\\""|Acc]);
+encode_string(<<$\\, T/binary>>, Acc) -> encode_string(T, ["\\\\"|Acc]);
+encode_string(<<H, T/binary>>, Acc) -> encode_string(T, [H|Acc]).
 
 encode_list([], Acc) -> [$[ | lists:reverse([$] | Acc])];
 encode_list([H], Acc) -> encode_list([], [encode(H) | Acc]); 
@@ -90,6 +91,7 @@ decode_float(<<H, T/binary>>, Buf) when ?is_digit(H); ?is_exponent(H) ->
 decode_float(Bin, Buf) ->
     {Bin, list_to_float(lists:reverse(Buf))}.
 
+decode_string(<<$", T/binary>>, Buf) -> {T, lists:reverse(Buf)};
 decode_string(<<$\\, $u, C1, C2, C3, C4, T/binary>>, Buf) ->
     Code = list_to_integer([C1, C2, C3, C4], 16),
     Char = unicode:characters_to_list([Code], utf8),
@@ -104,7 +106,6 @@ decode_string(<<$\\, Char, T/binary>>, Buf) ->
         Char -> Char
     end,
     decode_string(T, [SpecialChar|Buf]);
-decode_string(<<$", T/binary>>, Buf) -> {T, list_to_binary(lists:reverse(Buf))};
 decode_string(<<H, T/binary>>, Buf) -> decode_string(T, [H|Buf]).
 
 decode_list(<<$], T/binary>>, List) -> {T, lists:reverse(List)};

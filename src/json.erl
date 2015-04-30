@@ -27,22 +27,22 @@ encode(false) -> <<"false">>;
 encode(null) -> <<"null">>;
 encode(A) when is_atom(A) -> encode(list_to_binary(atom_to_list(A))).
 
-encode_string(<<>>, Acc) -> [$", lists:reverse(Acc), $"];
-encode_string(<<$\r, T/binary>>, Acc) -> encode_string(T, ["\\r"|Acc]);
-encode_string(<<$\t, T/binary>>, Acc) -> encode_string(T, ["\\t"|Acc]);
-encode_string(<<$\n, T/binary>>, Acc) -> encode_string(T, ["\\n"|Acc]);
-encode_string(<<$\f, T/binary>>, Acc) -> encode_string(T, ["\\f"|Acc]);
-encode_string(<<$", T/binary>>, Acc) -> encode_string(T, ["\\\""|Acc]);
-encode_string(<<$\\, T/binary>>, Acc) -> encode_string(T, ["\\\\"|Acc]);
-encode_string(<<H, T/binary>>, Acc) -> encode_string(T, [H|Acc]).
+encode_string(<<>>, Buf) -> [$", lists:reverse(Buf), $"];
+encode_string(<<$\r, T/binary>>, Buf) -> encode_string(T, ["\\r"|Buf]);
+encode_string(<<$\t, T/binary>>, Buf) -> encode_string(T, ["\\t"|Buf]);
+encode_string(<<$\n, T/binary>>, Buf) -> encode_string(T, ["\\n"|Buf]);
+encode_string(<<$\f, T/binary>>, Buf) -> encode_string(T, ["\\f"|Buf]);
+encode_string(<<$", T/binary>>, Buf) -> encode_string(T, ["\\\""|Buf]);
+encode_string(<<$\\, T/binary>>, Buf) -> encode_string(T, ["\\\\"|Buf]);
+encode_string(<<H, T/binary>>, Buf) -> encode_string(T, [H|Buf]).
 
-encode_list([], Acc) -> [$[, lists:reverse(Acc), $]];
-encode_list([H], Acc) -> encode_list([], [encode(H) | Acc]); 
-encode_list([H|T], Acc) -> encode_list(T, [$, | [encode(H) | Acc]]).
+encode_list([], Buf) -> [$[, lists:reverse(Buf), $]];
+encode_list([H], Buf) -> encode_list([], [encode(H) | Buf]); 
+encode_list([H|T], Buf) -> encode_list(T, [$, | [encode(H) | Buf]]).
 
-encode_map([], Acc) -> [${, lists:reverse(Acc), $}];
-encode_map([H], Acc) -> encode_map([], [encode_pair(H) | Acc]); 
-encode_map([H|T], Acc) -> encode_map(T, [$, | [encode_pair(H) | Acc]]).
+encode_map([], Buf) -> [${, lists:reverse(Buf), $}];
+encode_map([H], Buf) -> encode_map([], [encode_pair(H) | Buf]); 
+encode_map([H|T], Buf) -> encode_map(T, [$, | [encode_pair(H) | Buf]]).
 
 encode_pair({K,V}) -> 
     Key = encode(K), Value = encode(V), 

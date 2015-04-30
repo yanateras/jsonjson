@@ -45,10 +45,10 @@ Here is a comparison of JSON encoding between Erlang implementations:
 
 Implementations | Microseconds | Baseline speed | Lines of code              | Dependencies      | Pure?
 ----------------|--------------|----------------|----------------------------|-------------------|------
-[jiffy][]       | 656469       | 2.03x          | 166 Erlang + 2449 C        | double-conversion | ✗
-**json**        | **1339192**  | **1x**         | **108**                    | **✗**             | **✓**
-[json2][]       | 2166589      | 0.62x          | 542                        | ✗                 | ✓
-[json_eep][]    | 5006786      | 0.26x          | 349                        | leex              | ✓
+[jiffy][]       | 272805       | 2.929x         | 166 Erlang + 2449 C        | double-conversion | ✗
+**json**        | **799019**   | **1x**         | **115**                    | **✗**             | **✓**
+[json2][]       | 1613420      | 0.495x         | 542                        | ✗                 | ✓
+[json_eep][]    | 3628160      | 0.22x          | 349                        | leex              | ✓
 
 Decoding
 --------
@@ -83,10 +83,10 @@ Here is a comparison of JSON decoding between Erlang implementations:
 
 Implementations | Microseconds | Baseline speed | Lines of code              | Dependencies      | Pure?
 ----------------|--------------|----------------|----------------------------|-------------------|------
-[jiffy][]       | 388120       | 4.75x          | 166 Erlang + 2449 C        | double-conversion | ✗
-**json**        | **1846844**  | **1x**         | **108**                    | **✗**             | **✓**
-[json2][]       | 2788976      | 0.66x          | 542                        | ✗                 | ✓
-[json_eep][]    | 4869618      | 0.38x          | 349                        | leex              | ✓
+[jiffy][]       | 145011       | 5.99x          | 166 Erlang + 2449 C        | double-conversion | ✗
+**json**        | **869037**   | **1x**         | **115**                    | **✗**             | **✓**
+[json2][]       | 1528941      | 0.57x          | 542                        | ✗                 | ✓
+[json_eep][]    | 3594663      | 0.24x          | 349                        | leex              | ✓
 
 [Jiffy]: https://github.com/davisp/jiffy
 [json2]: https://github.com/klacke/yaws/blob/master/src/json2.erl
@@ -96,7 +96,7 @@ Benchmarks
 ----------
 
 Benchmarks are done on [MTG JSON v2.19.2](http://mtgjson.com) `AllSets.json` file
-using `timer:tc/3` function. Each implementation is tested five times, the lowest time is used.
+using `timer:tc/3` function. Each implementation is tested 50 times, then the lowest time is used.
 The host is MacBook Air 13″ Mid 2013. The operating system is OS X. Erlang settings are as follows:
 
 ```

@@ -36,11 +36,11 @@ encode_string(<<$", T/binary>>, Acc) -> encode_string(T, ["\\\""|Acc]);
 encode_string(<<$\\, T/binary>>, Acc) -> encode_string(T, ["\\\\"|Acc]);
 encode_string(<<H, T/binary>>, Acc) -> encode_string(T, [H|Acc]).
 
-encode_list([], Acc) -> [$[ | lists:reverse([$] | Acc])];
+encode_list([], Acc) -> [$[, lists:reverse(Acc), $]];
 encode_list([H], Acc) -> encode_list([], [encode(H) | Acc]); 
 encode_list([H|T], Acc) -> encode_list(T, [$, | [encode(H) | Acc]]).
 
-encode_map([], Acc) -> [${ | lists:reverse([$} | Acc])];
+encode_map([], Acc) -> [${, lists:reverse(Acc), $}];
 encode_map([H], Acc) -> encode_map([], [encode_pair(H) | Acc]); 
 encode_map([H|T], Acc) -> encode_map(T, [$, | [encode_pair(H) | Acc]]).
 

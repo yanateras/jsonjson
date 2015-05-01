@@ -59,7 +59,7 @@ Eshell V6.4  (abort with ^G)
 {ok,#{"code" => "DRK",
       "is_rare" => false,
       "name" => "The Dark",
-      "releaseDate" => "1994-08-01"}}
+      "releaseDate" => "1994-08-01"}, <<"">>}
 ```
 
 When decoding, everything is the same **except strings**. JSON strings are parsed to Erlang lists.

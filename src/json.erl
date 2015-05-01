@@ -53,7 +53,7 @@ decode(Bin) when is_binary(Bin) ->
     try
         decode_value(Bin)
     of
-        {_, Value} -> {ok, Value}
+        {Rest, Value} -> {ok, Value, Rest}
     catch
        error:Error -> {error, Error} 
     end.

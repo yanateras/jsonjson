@@ -58,7 +58,7 @@ decode(Bin) when is_binary(Bin) ->
        error:Error -> {error, Error} 
     end.
 
-decode_value(<<$", T/binary>>) -> decode_string(T, []);
+decode_value(<<$", T/binary>>) -> decode_string(T, <<>>);
 decode_value(<<$[, T/binary>>) -> decode_list(T, []);
 decode_value(<<${, T/binary>>) -> decode_map(T, #{});
 
@@ -91,11 +91,11 @@ decode_float(<<H, T/binary>>, Buf) when ?is_digit(H); ?is_exponent(H) ->
 decode_float(Bin, Buf) ->
     {Bin, list_to_float(lists:reverse(Buf))}.
 
-decode_string(<<$", T/binary>>, Buf) -> {T, lists:reverse(Buf)};
+decode_string(<<$", T/binary>>, Buf) -> {T, Buf};
 decode_string(<<$\\, $u, C1, C2, C3, C4, T/binary>>, Buf) ->
     Code = list_to_integer([C1, C2, C3, C4], 16),
     Char = unicode:characters_to_list([Code], utf8),
-    decode_string(T, [Char|Buf]);
+    decode_string(T, <<Buf/binary, Char>>);
 decode_string(<<$\\, Char, T/binary>>, Buf) ->
     SpecialChar = case Char of
         $b -> $\s;
@@ -105,8 +105,8 @@ decode_string(<<$\\, Char, T/binary>>, Buf) ->
         $t -> $\t;
         Char -> Char
     end,
-    decode_string(T, [SpecialChar|Buf]);
-decode_string(<<H, T/binary>>, Buf) -> decode_string(T, [H|Buf]).
+    decode_string(T, <<Buf/binary, SpecialChar>>);
+decode_string(<<H, T/binary>>, Buf) -> decode_string(T, <<Buf/binary, H>>).
 
 decode_list(<<$], T/binary>>, List) -> {T, lists:reverse(List)};
 decode_list(<<H, T/binary>>, List) when ?is_space(H); H == $, -> decode_list(T, List);

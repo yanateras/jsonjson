@@ -74,21 +74,21 @@ Benchmarks
 ----------
 
 Benchmarks are done on [MTG JSON v2.19.2](http://mtgjson.com) `AllSets.json` file
-using `timer:tc/3` function. Each implementation is tested 50 times, then the lowest time is used.
+using `timer:tc/3` function. Each function is tested 50 times, then the lowest time is used.
 The host is MacBook Air 13″ Mid 2013. The operating system is OS X. Erlang settings are as follows:
 
 ```
 Erlang/OTP 17 [erts-6.4] [source] [64-bit] [smp:4:4] [async-threads:10] [hipe] [kernel-poll:false] [dtrace]
 ```
 
-If implementation supports only lists on decoding, time spent on `binary_to_list/1` is included.
+If decoding function supports only lists, time spent on `binary_to_list/1` is included.
 
-Implementations | Decoding (μs)   | Encoding (μs)   | Lines of code              | Dependencies      | Pure?
-----------------|-----------------|-----------------|----------------------------|-------------------|------
-[jiffy][]       | 145011 (6x)     | 272805 (2.93x)  | 166 Erlang + 2449 C        | double-conversion | ✗
-**json**        | **869037 (1x)** | **799019 (1x)** | **115**                    | **✗**             | **✓**
-[json2][]       | 1528941 (0.57x) | 1613420 (0.5x)  | 542                        | ✗                 | ✓
-[json_eep][]    | 3594663 (0.24x) | 3628160 (0.22x) | 349                        | leex              | ✓
+Modules      | Decoding (μs)   | Encoding (μs)   | Lines of code       | Dependencies      | Pure?
+-------------|-----------------|-----------------|---------------------|-------------------|------
+[jiffy][]    | 145011 (6x)     | 272805 (2.93x)  | 166 Erlang + 2449 C | double-conversion | ✗
+**json**     | **869037 (1x)** | **799019 (1x)** | **115**             | **✗**             | **✓**
+[json2][]    | 1528941 (0.57x) | 1613420 (0.5x)  | 542                 | ✗                 | ✓
+[json_eep][] | 3594663 (0.24x) | 3628160 (0.22x) | 349                 | leex              | ✓
 
 [Jiffy]: https://github.com/davisp/jiffy
 [json2]: https://github.com/klacke/yaws/blob/master/src/json2.erl

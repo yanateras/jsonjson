@@ -97,8 +97,10 @@ Modules      | Decoding, μs | Encoding, μs | Lines of code    | Dependencies
 [jiffy][]    | 145011       | 272805       | 2615 (93% C)     | double-conversion | ✗
 **json**     | **869037**   | **799019**   | **115**          | **✗**             | **✓**
 [json2][]    | 1528941      | 1613420      | 542              | ✗                 | ✓
+[elib1...][] | 2116489      | 2563620      | 352              | ✗                 | ✓
 [json_eep][] | 3594663      | 3628160      | 349              | leex              | ✓
 
 [Jiffy]: https://github.com/davisp/jiffy
 [json2]: https://github.com/klacke/yaws/blob/master/src/json2.erl
+[elib1...]: https://github.com/joearms/elib1/blob/master/src/elib1_rfc4627.erl
 [json_eep]: https://github.com/jchris/erlang-json-eep-parser

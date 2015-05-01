@@ -96,6 +96,7 @@ Modules      | Decoding, μs | Encoding, μs | Lines of code    | Dependencies
 -------------|--------------|--------------|------------------|-------------------|------
 [jsonx][]    | 100746       | 119921       | 1831 (87% C)     | ✗                 | ✗
 [jiffy][]    | 137594       | 272805       | 2615 (93% C)     | double-conversion | ✗
+[jsone][]    | 728664       | 1057655      | 509              | ✗                 | ✓
 **json**     | **869037**   | **799019**   | **115**          | **✗**             | **✓**
 [json2][]    | 1528941      | 1613420      | 542              | ✗                 | ✓
 [elib1...][] | 2116489      | 2563620      | 352              | ✗                 | ✓
@@ -104,6 +105,7 @@ Modules      | Decoding, μs | Encoding, μs | Lines of code    | Dependencies
 
 [jsonx]: https://github.com/iskra/jsonx
 [jiffy]: https://github.com/davisp/jiffy
+[jsone]: https://github.com/sile/jsone
 [json2]: https://github.com/klacke/yaws/blob/master/src/json2.erl
 [elib1...]: https://github.com/joearms/elib1/blob/master/src/elib1_rfc4627.erl
 [rfc4627]: https://github.com/tonyg/erlang-rfc4627

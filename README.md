@@ -70,6 +70,14 @@ Mind that key order in JSON objects is not preserved. From [RFC 7159](http://www
 > An object is an unordered collection of zero or more name/value pairs,
 > where a name is a string and a value is a string, number, boolean, null, object, or array.
 
+Decoder is more lenient than the spec in the following:
+
+* repeated commas in arrays and objects collapse into a single comma
+* exponent sign can be skipped (then it is treated as positive)
+* leading zeros for numbers are accepted
+* any JSON value can be at the top level
+* any characters after the first parsed value at the top level are discarded
+
 Benchmarks
 ----------
 

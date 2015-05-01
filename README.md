@@ -41,15 +41,6 @@ false       | false
 null        | null
 atom        | string
 
-Here is a comparison of JSON encoding between Erlang implementations:
-
-Implementations | Microseconds | Baseline speed | Lines of code              | Dependencies      | Pure?
-----------------|--------------|----------------|----------------------------|-------------------|------
-[jiffy][]       | 272805       | 2.929x         | 166 Erlang + 2449 C        | double-conversion | ✗
-**json**        | **799019**   | **1x**         | **115**                    | **✗**             | **✓**
-[json2][]       | 1613420      | 0.495x         | 542                        | ✗                 | ✓
-[json_eep][]    | 3628160      | 0.22x          | 349                        | leex              | ✓
-
 Decoding
 --------
 
@@ -79,19 +70,6 @@ Mind that key order in JSON objects is not preserved. From [RFC 7159](http://www
 > An object is an unordered collection of zero or more name/value pairs,
 > where a name is a string and a value is a string, number, boolean, null, object, or array.
 
-Here is a comparison of JSON decoding between Erlang implementations:
-
-Implementations | Microseconds | Baseline speed | Lines of code              | Dependencies      | Pure?
-----------------|--------------|----------------|----------------------------|-------------------|------
-[jiffy][]       | 145011       | 5.992x         | 166 Erlang + 2449 C        | double-conversion | ✗
-**json**        | **869037**   | **1x**         | **115**                    | **✗**             | **✓**
-[json2][]       | 1528941      | 0.568x         | 542                        | ✗                 | ✓
-[json_eep][]    | 3594663      | 0.241x         | 349                        | leex              | ✓
-
-[Jiffy]: https://github.com/davisp/jiffy
-[json2]: https://github.com/klacke/yaws/blob/master/src/json2.erl
-[json_eep]: https://github.com/jchris/erlang-json-eep-parser
-
 Benchmarks
 ----------
 
@@ -104,3 +82,14 @@ Erlang/OTP 17 [erts-6.4] [source] [64-bit] [smp:4:4] [async-threads:10] [hipe] [
 ```
 
 If implementation supports only lists on decoding, time spent on `binary_to_list/1` is included.
+
+Implementations | Decoding (μs)   | Encoding (μs)   | Lines of code              | Dependencies      | Pure?
+----------------|-----------------|-----------------|----------------------------|-------------------|------
+[jiffy][]       | 145011 (6x)     | 272805 (2.93x)  | 166 Erlang + 2449 C        | double-conversion | ✗
+**json**        | **869037 (1x)** | **799019 (1x)** | **115**                    | **✗**             | **✓**
+[json2][]       | 1528941 (0.57x) | 1613420 (0.5x)  | 542                        | ✗                 | ✓
+[json_eep][]    | 3594663 (0.24x) | 3628160 (0.22x) | 349                        | leex              | ✓
+
+[Jiffy]: https://github.com/davisp/jiffy
+[json2]: https://github.com/klacke/yaws/blob/master/src/json2.erl
+[json_eep]: https://github.com/jchris/erlang-json-eep-parser

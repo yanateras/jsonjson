@@ -3,7 +3,7 @@ json
 
 Simple, pure, optimized JSON module that both encodes and decodes.
 Use it when you need a clean, pure Erlang module without dependencies that just works
-and can be easily audited. Use [Jiffy][] if you seek performance.
+and can be easily audited.
 
 Encoding
 --------
@@ -94,14 +94,16 @@ If decoding function supports only lists, time spent on `binary_to_list/1` is in
 
 Modules      | Decoding, μs | Encoding, μs | Lines of code    | Dependencies      | Pure?
 -------------|--------------|--------------|------------------|-------------------|------
-[jiffy][]    | 145011       | 272805       | 2615 (93% C)     | double-conversion | ✗
+[jsonx][]    | 100746       | 119921       | 1831 (87% C)     | ✗                 | ✗
+[jiffy][]    | 137594       | 272805       | 2615 (93% C)     | double-conversion | ✗
 **json**     | **869037**   | **799019**   | **115**          | **✗**             | **✓**
 [json2][]    | 1528941      | 1613420      | 542              | ✗                 | ✓
 [elib1...][] | 2116489      | 2563620      | 352              | ✗                 | ✓
 [rfc4627][]  | 2664426      | 2670321      | 507              | ✗                 | ✓
 [json_eep][] | 3594663      | 3628160      | 349              | leex              | ✓
 
-[Jiffy]: https://github.com/davisp/jiffy
+[jsonx]: https://github.com/iskra/jsonx
+[jiffy]: https://github.com/davisp/jiffy
 [json2]: https://github.com/klacke/yaws/blob/master/src/json2.erl
 [elib1...]: https://github.com/joearms/elib1/blob/master/src/elib1_rfc4627.erl
 [rfc4627]: https://github.com/tonyg/erlang-rfc4627

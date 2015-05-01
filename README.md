@@ -72,6 +72,7 @@ Mind that key order in JSON objects is not preserved. From [RFC 7159](http://www
 
 Decoder is more lenient than the spec in the following:
 
+* any character =< 32 is considered whitespace
 * repeated commas in arrays and objects collapse into a single comma
 * exponent sign can be skipped (then it is treated as positive)
 * leading zeros for numbers are accepted

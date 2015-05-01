@@ -14,7 +14,7 @@
 
 -export([encode/1, decode/1]).
 -define(is_digit(X), X >= 48, X =< 57).
--define(is_space(X), X == $\t; X == $\s; X == $\t; X == $\n).
+-define(is_space(X), X =< 32).
 -define(is_exponent(X), X == $e; X == $E; X == $+; X == $-).
 
 encode(Bin) when is_binary(Bin) -> encode_string(Bin, []);

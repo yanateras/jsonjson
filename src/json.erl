@@ -62,25 +62,12 @@ decode_value(<<$", T/binary>>) -> decode_string(T, []);
 decode_value(<<$[, T/binary>>) -> decode_list(T, []);
 decode_value(<<${, T/binary>>) -> decode_map(T, #{});
 
-decode_value(<<$t, T/binary>>) -> decode_atom(T, t);
-decode_value(<<$f, T/binary>>) -> decode_atom(T, f);
-decode_value(<<$n, T/binary>>) -> decode_atom(T, n);
+decode_value(<<"true", T/binary>>) -> {T, true};
+decode_value(<<"false", T/binary>>) -> {T, false};
+decode_value(<<"null", T/binary>>) -> {T, null};
 
 decode_value(<<H, T/binary>>) when ?is_digit(H); H == $- -> decode_integer(T, [H]);
 decode_value(<<H, T/binary>>) when ?is_space(H) -> decode_value(T).
-
-decode_atom(<<$r, T/binary>>, t) -> decode_atom(T, tr);
-decode_atom(<<$u, T/binary>>, tr) -> decode_atom(T, tru);
-decode_atom(<<$e, T/binary>>, tru) -> {T, true};
-
-decode_atom(<<$a, T/binary>>, f) -> decode_atom(T, fa);
-decode_atom(<<$l, T/binary>>, fa) -> decode_atom(T, fal);
-decode_atom(<<$s, T/binary>>, fal) -> decode_atom(T, fals);
-decode_atom(<<$e, T/binary>>, fals) -> {T, false};
-
-decode_atom(<<$u, T/binary>>, n) -> decode_atom(T, nu);
-decode_atom(<<$l, T/binary>>, nu) -> decode_atom(T, nul);
-decode_atom(<<$l, T/binary>>, nul) -> {T, null}.
 
 decode_integer(<<H, T/binary>>, Buf) when ?is_digit(H) -> decode_integer(T, [H|Buf]);
 decode_integer(<<$., T/binary>>, Buf) -> decode_float(T, [$.|Buf]);

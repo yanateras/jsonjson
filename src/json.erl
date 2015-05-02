@@ -62,12 +62,12 @@ decode_value(<<$", T/binary>>) -> decode_string(T, []);
 decode_value(<<$[, T/binary>>) -> decode_list(T, []);
 decode_value(<<${, T/binary>>) -> decode_map(T, #{});
 
+decode_value(<<H, T/binary>>) when ?is_digit(H); H == $- -> decode_integer(T, [H]);
+decode_value(<<H, T/binary>>) when ?is_space(H) -> decode_value(T);
+
 decode_value(<<"true", T/binary>>) -> {T, true};
 decode_value(<<"false", T/binary>>) -> {T, false};
-decode_value(<<"null", T/binary>>) -> {T, null};
-
-decode_value(<<H, T/binary>>) when ?is_digit(H); H == $- -> decode_integer(T, [H]);
-decode_value(<<H, T/binary>>) when ?is_space(H) -> decode_value(T).
+decode_value(<<"null", T/binary>>) -> {T, null}.
 
 decode_integer(<<H, T/binary>>, Buf) when ?is_digit(H) -> decode_integer(T, [H|Buf]);
 decode_integer(<<$., T/binary>>, Buf) -> decode_float(T, [$.|Buf]);

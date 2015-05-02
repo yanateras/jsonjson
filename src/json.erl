@@ -71,10 +71,8 @@ decode_integer(<<H, T/binary>>, Buf) when ?is_digit(H) -> decode_integer(T, [H|B
 decode_integer(<<$., T/binary>>, Buf) -> decode_float(T, [$.|Buf]);
 decode_integer(Bin, Buf) -> {Bin, list_to_integer(lists:reverse(Buf))}.
 
-decode_float(<<H, T/binary>>, Buf) when ?is_digit(H); ?is_exponent(H) ->
-    decode_float(T, [H|Buf]);
-decode_float(Bin, Buf) ->
-    {Bin, list_to_float(lists:reverse(Buf))}.
+decode_float(<<H, T/binary>>, Buf) when ?is_digit(H); ?is_exponent(H) -> decode_float(T, [H|Buf]);
+decode_float(Bin, Buf) -> {Bin, list_to_float(lists:reverse(Buf))}.
 
 decode_string(<<$", T/binary>>, Buf) -> {T, lists:reverse(Buf)};
 decode_string(<<$\\, $u, C1, C2, C3, C4, T/binary>>, Buf) ->

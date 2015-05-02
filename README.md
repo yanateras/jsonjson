@@ -75,6 +75,8 @@ Decoder is more lenient than the spec in the following:
 * any character =< 32 is considered whitespace
 * commas are treated as whitespaces: that means both `[1 2 3 4]`
   and `[,,,1,,,2,,,3,,,4,,,]` are parsable
+* whitespace is optional on token boundaries: `["hello"true1falsenull]`
+  is parsed to `["hello", true, 1, false, null]`
 * exponent sign can be skipped (then it is treated as positive)
 * leading zeros for numbers are accepted
 * any JSON value can be at the top level

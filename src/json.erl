@@ -53,7 +53,7 @@ decode(Bin) when is_binary(Bin) ->
     of
         {Rest, Value} -> {ok, Value, Rest}
     catch
-       error:Error -> {error, Error} 
+       error:Reason -> {error, Reason} 
     end.
 
 decode_value(<<$", T/binary>>) -> decode_string(T, []);

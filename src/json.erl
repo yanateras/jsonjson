@@ -83,16 +83,12 @@ decode_string(<<$\\, $u, C1, C2, C3, C4, T/binary>>, Buf) ->
     Code = list_to_integer([C1, C2, C3, C4], 16),
     Char = unicode:characters_to_list([Code], utf8),
     decode_string(T, [Char|Buf]);
-decode_string(<<$\\, Char, T/binary>>, Buf) ->
-    SpecialChar = case Char of
-        $b -> $\s;
-        $f -> $\f;
-        $n -> $\n;
-        $r -> $\r;
-        $t -> $\t;
-        Char -> Char
-    end,
-    decode_string(T, [SpecialChar|Buf]);
+decode_string(<<$\\, $b, T/binary>>, Buf) -> decode_string(T, [$\s|Buf]);
+decode_string(<<$\\, $f, T/binary>>, Buf) -> decode_string(T, [$\f|Buf]);
+decode_string(<<$\\, $n, T/binary>>, Buf) -> decode_string(T, [$\n|Buf]);
+decode_string(<<$\\, $r, T/binary>>, Buf) -> decode_string(T, [$\r|Buf]);
+decode_string(<<$\\, $t, T/binary>>, Buf) -> decode_string(T, [$\t|Buf]);
+decode_string(<<$\\, Char, T/binary>>, Buf) -> decode_string(T, [Char|Buf]);
 decode_string(<<H, T/binary>>, Buf) -> decode_string(T, [H|Buf]).
 
 decode_list(<<$], T/binary>>, List) -> {T, lists:reverse(List)};

@@ -44,9 +44,7 @@ encode_map([], Buf) -> [${, lists:reverse(Buf), $}];
 encode_map([H], Buf) -> encode_map([], [encode_pair(H) | Buf]); 
 encode_map([H|T], Buf) -> encode_map(T, [$, | [encode_pair(H) | Buf]]).
 
-encode_pair({K,V}) -> 
-    Key = encode(K), Value = encode(V), 
-    [Key, $:, Value].
+encode_pair({K,V}) -> [encode(K), $:, encode(V)].
 
 decode(String) when is_list(String) -> decode(list_to_binary(String));
 decode(Bin) when is_binary(Bin) ->

@@ -32,8 +32,8 @@ encode_string(<<$\r, T/binary>>, Buf) -> encode_string(T, ["\\r"|Buf]);
 encode_string(<<$\t, T/binary>>, Buf) -> encode_string(T, ["\\t"|Buf]);
 encode_string(<<$\n, T/binary>>, Buf) -> encode_string(T, ["\\n"|Buf]);
 encode_string(<<$\f, T/binary>>, Buf) -> encode_string(T, ["\\f"|Buf]);
-encode_string(<<$", T/binary>>, Buf) -> encode_string(T, ["\\\""|Buf]);
 encode_string(<<$\\, T/binary>>, Buf) -> encode_string(T, ["\\\\"|Buf]);
+encode_string(<<$", T/binary>>, Buf) -> encode_string(T, ["\\\""|Buf]);
 encode_string(<<H, T/binary>>, Buf) -> encode_string(T, [H|Buf]).
 
 encode_list([], Buf) -> [$[, lists:reverse(Buf), $]];

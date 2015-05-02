@@ -91,8 +91,8 @@ decode_string(<<$\\, $t, T/binary>>, Buf) -> decode_string(T, [$\t|Buf]);
 decode_string(<<$\\, Char, T/binary>>, Buf) -> decode_string(T, [Char|Buf]);
 decode_string(<<H, T/binary>>, Buf) -> decode_string(T, [H|Buf]).
 
-decode_list(<<$], T/binary>>, List) -> {T, lists:reverse(List)};
 decode_list(<<H, T/binary>>, List) when ?is_space(H); H == $, -> decode_list(T, List);
+decode_list(<<$], T/binary>>, List) -> {T, lists:reverse(List)};
 decode_list(Bin, List) ->
     {Rest, Value} = decode_value(Bin),
     decode_list(Rest, [Value|List]).

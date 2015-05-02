@@ -98,8 +98,7 @@ decode_list(Bin, List) ->
     decode_list(Rest, [Value|List]).
 
 decode_map(<<$}, T/binary>>, Map) -> {T, Map};
-decode_map(<<$,, T/binary>>, Map) -> decode_map(T, Map);
-decode_map(<<H, T/binary>>, Map) when ?is_space(H) -> decode_map(T, Map);
+decode_map(<<H, T/binary>>, Map) when ?is_space(H); H == $, -> decode_map(T, Map);
 decode_map(Bin, Map) ->
     {Rest1, Key} = decode_value(Bin),
     {Rest2, ok} = decode_colon(Rest1),

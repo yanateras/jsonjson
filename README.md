@@ -73,8 +73,8 @@ Mind that key order in JSON objects is not preserved. From [RFC 7159](http://www
 Decoder is more lenient than the spec in the following:
 
 * any character =< 32 is considered whitespace
-* commas are treated as whitespaces: that means both "[1 2 3 4]"
-  and "[1,,,2,,,3,,,4,,,]" are parsable
+* commas are treated as whitespaces: that means both `[1 2 3 4]`
+  and `[,,,1,,,2,,,3,,,4,,,]` are parsable
 * exponent sign can be skipped (then it is treated as positive)
 * leading zeros for numbers are accepted
 * any JSON value can be at the top level

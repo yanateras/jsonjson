@@ -21,6 +21,7 @@ encode(Bin) when is_binary(Bin) -> encode_string(Bin, []);
 encode(I) when is_integer(I) -> integer_to_binary(I);
 encode(F) when is_float(F) -> float_to_binary(F);
 encode(M) when is_map(M) -> encode_map(maps:to_list(M), []);
+encode([{_, _}, _] = Props) -> encode_map(Props, []);
 encode(L) when is_list(L) -> encode_list(L, []);
 encode(true) -> <<"true">>;
 encode(false) -> <<"false">>;

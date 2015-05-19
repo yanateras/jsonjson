@@ -1,0 +1,112 @@
+.TH json 3 "v1.0.0" "Yegor Timoschenko" "Erlang Module Definition"
+.SH NAME
+.B json
+\- JSON encoder/decoder
+.SH DESCRIPTION
+This module provides a simple JSON encoder/decoder according to RFC 7159.
+.SH EXPORTS
+.LP
+.B
+encode(Term) -> JSON
+.RS
+.LP
+Term = term()
+.br
+JSON = iolist()
+
+Encode Erlang term into JSON value.
+.TS
+box;
+lb | lb.
+Erlang term	JSON value
+_
+.T&
+l | l.
+atom	string
+binary	string
+false	false
+float	float
+integer	integer
+list	array
+map	object
+null	null
+proplist	object
+true	true
+.TE
+.RE
+
+.LP
+.B
+decode(JSON) -> {ok, Term, Rest} | {error, Reason}
+.RS
+.LP
+JSON = binary() | list()
+.br
+Term = term()
+.br
+Rest = binary()
+.br
+Reason = atom()
+
+Decode JSON value to Erlang term.
+.br
+Characters left after reading the value are returned as \fIRest\fR.
+.TS
+box;
+lb | lb.
+JSON value	Erlang term
+.T&
+l | l.
+_
+array	list
+false	false
+float	float
+integer	integer
+null	null
+object	map
+string	\fIlist\fR
+true	true
+.TE
+
+.RE
+
+.SH QUIRKS
+Decoder is more lenient than the standard in the following:
+.RS
+.IP \[bu] 2
+any character =< 32 is considered whitespace
+.IP \[bu]
+commas are not enforced in arrays, and treated as any other whitespace:
+.br
+{ok, [1,2,3,4], _} = json:decode(<<"[,,,1  2,3, ,4]">>).
+.br
+{ok, [], _} = json:decode(<<"[,, ,,]">>).
+.IP \[bu]
+whitespace is optional on token boundaries:
+.br
+{ok, ["hello", true, 1, null], _} = json:decode(<<"[\\"hello\\"true1null]">>).
+.IP \[bu]
+exponent sign can be skipped (then the exponent is treated as positive):
+.br
+{ok, 1.0e+4, _} = json:decode(<<"1.0e4">>).
+.IP \[bu]
+leading zeros for numbers are supported:
+.br
+{ok, 4, _} = json:decode(<<"0004">>).
+.IP \[bu]
+any JSON value can be at the top level
+.IP \[bu]
+leaving bytes after the first value at the top level is OK:
+.br
+{ok, #{}, <<"[]">>} = json:decode(<<"{}[]">>).
+.RE
+
+Mind that, according to RFC 7159, key order in JSON objects is not preserved:
+.RS
+
+An object is an unordered collection of zero or more name/value pairs,
+where a name is a string and a value is a string, number, boolean, null, object, or array.
+.RE
+.SH SEE ALSO
+RFC 7159
+.RE

@@ -62,7 +62,7 @@ QUIRKS
                 {ok, [], _} = json:decode(<<"[,, ,,]">>).
 
               o whitespace is optional on token boundaries:
-                {ok, ["hello", true, 1, null], _} =
+                {ok, [<<"hello">>, true, 1, null], _} =
 		    json:decode(<<"[\"hello\"true1null]">>).
 
               o leading zeros for numbers are supported:

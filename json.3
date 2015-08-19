@@ -84,7 +84,7 @@ commas are not enforced in arrays, and treated as any other whitespace:
 .IP \[bu]
 whitespace is optional on token boundaries:
 .br
-{ok, ["hello", true, 1, null], _} = json:decode(<<"[\\"hello\\"true1null]">>).
+{ok, [<<"hello">>, true, 1, null], _} = json:decode(<<"[\\"hello\\"true1null]">>).
 .IP \[bu]
 leading zeros for numbers are supported:
 .br

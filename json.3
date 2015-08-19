@@ -86,10 +86,6 @@ whitespace is optional on token boundaries:
 .br
 {ok, ["hello", true, 1, null], _} = json:decode(<<"[\\"hello\\"true1null]">>).
 .IP \[bu]
-exponent sign can be skipped (then the exponent is treated as positive):
-.br
-{ok, 1.0e+4, _} = json:decode(<<"1.0e4">>).
-.IP \[bu]
 leading zeros for numbers are supported:
 .br
 {ok, 4, _} = json:decode(<<"0004">>).

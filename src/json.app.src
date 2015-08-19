@@ -1,6 +1,6 @@
 {application, json, [
-  {description, "Simple, pure Erlang module for encoding and decoding JSON"},
-  {vsn, "0.4.0"},
+  {description, "Module for encoding and decoding JSON"},
+  {vsn, "0.5.0"},
   {modules, [json]},
   {registered, []},
   {applications, [kernel, stdlib]},

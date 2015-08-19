@@ -1,7 +1,3 @@
-json(3)                                  Erlang Module Definition                                  json(3)
-
-
-
 NAME
        json - JSON encoder/decoder
 
@@ -60,15 +56,14 @@ QUIRKS
 
               o any character =< 32 is considered whitespace
 
-              o commas are not enforced in arrays, and treated as any other whitespace:
+              o commas are not enforced in arrays, and treated as any
+	        other whitespace:
                 {ok, [1,2,3,4], _} = json:decode(<<"[,,,1  2,3, ,4]">>).
                 {ok, [], _} = json:decode(<<"[,, ,,]">>).
 
               o whitespace is optional on token boundaries:
-                {ok, ["hello", true, 1, null], _} = json:decode(<<"[\"hello\"true1null]">>).
-
-              o exponent sign can be skipped (then the exponent is treated as positive):
-                {ok, 1.0e+4, _} = json:decode(<<"1.0e4">>).
+                {ok, ["hello", true, 1, null], _} =
+		    json:decode(<<"[\"hello\"true1null]">>).
 
               o leading zeros for numbers are supported:
                 {ok, 4, _} = json:decode(<<"0004">>).
@@ -78,14 +73,11 @@ QUIRKS
               o leaving bytes after the first value at the top level is OK:
                 {ok, #{}, <<"[]">>} = json:decode(<<"{}[]">>).
 
-       Mind that, according to RFC 7159, key order in JSON objects is not preserved:
+       Mind that, according to RFC 7159, key order in objects is not preserved:
 
-              An  object  is  an  unordered collection of zero or more name/value pairs, where a name is a
-              string and a value is a string, number, boolean, null, object, or array.
+              An object is an unordered collection of zero or more
+	      name/value pairs, where a name is a string and a value
+	      is a string, number, boolean, null, object, or array.
 
 SEE ALSO
        RFC 7159
-
-
-
-Yegor Timoschenko                                 v1.0.0                                           json(3)

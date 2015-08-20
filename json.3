@@ -97,7 +97,7 @@ leaving bytes after the first value at the top level is OK:
 {ok, #{}, <<"[]">>} = json:decode(<<"{}[]">>).
 .RE
 
-Mind that, according to RFC 7159, key order in JSON objects is not preserved:
+Mind that, according to RFC 7159, key order in objects is not preserved:
 .RS
 
 An object is an unordered collection of zero or more name/value pairs,

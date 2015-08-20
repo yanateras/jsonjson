@@ -47,7 +47,7 @@ encode_map([H|T], Buf) -> encode_map(T, [$, | [encode_pair(H) | Buf]]).
 
 encode_pair({K,V}) -> [encode(K), $:, encode(V)].
 
-decode(String) when is_list(String) -> decode(list_to_binary(String));
+decode(String) when is_list(String) -> decode(unicode:characters_to_binary(String));
 decode(Bin) when is_binary(Bin) ->
     try
         decode_value(Bin)

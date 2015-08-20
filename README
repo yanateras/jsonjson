@@ -2,7 +2,7 @@ NAME
        json - JSON encoder/decoder
 
 DESCRIPTION
-       This module provides a simple JSON encoder/decoder according to RFC 7159.
+       This module provides a JSON encoder/decoder according to RFC 7159.
 
 EXPORTS
        encode(Term) -> JSON

@@ -17,7 +17,7 @@
 -define(is_space(X), X =< 32).
 -define(is_exponent(X), X == $e; X == $E; X == $+; X == $-).
 
-encode(Bin) when is_binary(Bin) -> encode_string(Bin, []);
+encode(Bin) when is_binary(Bin) -> encode_string(Bin, <<$">>);
 encode(I) when is_integer(I) -> integer_to_binary(I);
 encode(F) when is_float(F) -> float_to_binary(F);
 encode(M) when is_map(M) -> encode_map(maps:to_list(M), []);
@@ -28,14 +28,14 @@ encode(false) -> <<"false">>;
 encode(null) -> <<"null">>;
 encode(A) when is_atom(A) -> encode(list_to_binary(atom_to_list(A))).
 
-encode_string(<<>>, Buf) -> [$", lists:reverse(Buf), $"];
-encode_string(<<$\r, T/binary>>, Buf) -> encode_string(T, ["\\r"|Buf]);
-encode_string(<<$\t, T/binary>>, Buf) -> encode_string(T, ["\\t"|Buf]);
-encode_string(<<$\n, T/binary>>, Buf) -> encode_string(T, ["\\n"|Buf]);
-encode_string(<<$\f, T/binary>>, Buf) -> encode_string(T, ["\\f"|Buf]);
-encode_string(<<$\\, T/binary>>, Buf) -> encode_string(T, ["\\\\"|Buf]);
-encode_string(<<$", T/binary>>, Buf) -> encode_string(T, ["\\\""|Buf]);
-encode_string(<<H, T/binary>>, Buf) -> encode_string(T, [H|Buf]).
+encode_string(<<>>, Buf) -> <<Buf/binary, $">>;
+encode_string(<<$\r, T/binary>>, Buf) -> encode_string(T, <<Buf/binary, $\\, $r>>);
+encode_string(<<$\t, T/binary>>, Buf) -> encode_string(T, <<Buf/binary, $\\, $t>>);
+encode_string(<<$\n, T/binary>>, Buf) -> encode_string(T, <<Buf/binary, $\\, $n>>);
+encode_string(<<$\f, T/binary>>, Buf) -> encode_string(T, <<Buf/binary, $\\, $f>>);
+encode_string(<<$\\, T/binary>>, Buf) -> encode_string(T, <<Buf/binary, $\\, $\\>>);
+encode_string(<<$", T/binary>>, Buf) -> encode_string(T, <<Buf/binary, $\\, $">>);
+encode_string(<<H, T/binary>>, Buf) -> encode_string(T, <<Buf/binary, H>>).
 
 encode_list([], Buf) -> [$[, lists:reverse(Buf), $]];
 encode_list([H], Buf) -> encode_list([], [encode(H) | Buf]); 

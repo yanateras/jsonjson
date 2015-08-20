@@ -77,9 +77,17 @@ decode_float(Bin, Buf) -> {Bin, list_to_float(lists:reverse(Buf))}.
 
 decode_string(<<$", T/binary>>, Buf) -> {T, Buf};
 decode_string(<<$\\, $u, C1, C2, C3, C4, T/binary>>, Buf) ->
-    Code = list_to_integer([C1, C2, C3, C4], 16),
-    Char = unicode:characters_to_binary([Code]),
-    decode_string(T, <<Buf/binary, Char/binary>>);
+    C = list_to_integer([C1, C2, C3, C4], 16),
+    if C > 16#D7FF, C < 16#DC00 ->
+        <<$\\, $u, D1, D2, D3, D4, T2/binary>> = T,
+        D = list_to_integer([D1, D2, D3, D4], 16),
+        Point = xmerl_ucs:from_utf16be(<<C:16/big-unsigned-integer, D:16/big-unsigned-integer>>),
+        Char = unicode:characters_to_binary(Point),
+        decode_string(T2, <<Buf/binary, Char/binary>>);
+    true ->
+        Char = unicode:characters_to_binary([C]),
+        decode_string(T, <<Buf/binary, Char/binary>>)
+    end;
 decode_string(<<$\\, $b, T/binary>>, Buf) -> decode_string(T, <<Buf/binary, $\s>>);
 decode_string(<<$\\, $f, T/binary>>, Buf) -> decode_string(T, <<Buf/binary, $\f>>);
 decode_string(<<$\\, $n, T/binary>>, Buf) -> decode_string(T, <<Buf/binary, $\n>>);

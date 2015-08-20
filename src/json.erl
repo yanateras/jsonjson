@@ -78,8 +78,8 @@ decode_float(Bin, Buf) -> {Bin, list_to_float(lists:reverse(Buf))}.
 decode_string(<<$", T/binary>>, Buf) -> {T, Buf};
 decode_string(<<$\\, $u, C1, C2, C3, C4, T/binary>>, Buf) ->
     Code = list_to_integer([C1, C2, C3, C4], 16),
-    Char = unicode:characters_to_list([Code], utf8),
-    decode_string(T, <<Buf/binary, Char>>);
+    Char = unicode:characters_to_binary([Code]),
+    decode_string(T, <<Buf/binary, Char/binary>>);
 decode_string(<<$\\, $b, T/binary>>, Buf) -> decode_string(T, <<Buf/binary, $\s>>);
 decode_string(<<$\\, $f, T/binary>>, Buf) -> decode_string(T, <<Buf/binary, $\f>>);
 decode_string(<<$\\, $n, T/binary>>, Buf) -> decode_string(T, <<Buf/binary, $\n>>);

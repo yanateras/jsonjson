@@ -72,6 +72,9 @@ QUIRKS
 
               o any JSON value can be at the top level
 
+              o any JSON value can be used as a key, not just strings:
+                {ok, #{[1] := 2}, _} = json:decode(<<"{[1]: 2}">>).
+
               o leaving bytes after the first value at the top level is OK:
                 {ok, #{}, <<"[]">>} = json:decode(<<"{}[]">>).
 

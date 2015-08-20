@@ -97,6 +97,8 @@ any JSON value can be at the top level
 any JSON value can be used as a key, not just strings:
 .br
 {ok, #{[1] := 2}, _} = json:decode(<<"{[1]: 2}">>).
+.br
+{ok, #{null := <<"x">>}, _} = json:decode(<<"{null: \\"x\\"}">>).
 .IP \[bu]
 leaving bytes after the first value at the top level is OK:
 .br

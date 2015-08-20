@@ -52,6 +52,8 @@ EXPORTS
 
 
 QUIRKS
+       Encoder will encode any Erlang list (including strings) as JSON array.
+
        Decoder is more lenient than the standard in the following:
 
               o any character =< 32 is considered whitespace

@@ -51,7 +51,7 @@ EXPORTS
               +-----------+-------------+
 
 
-QUIRKS
+CAVEATS
        Encoder will encode any Erlang list (including strings) as JSON array.
 
        Decoder is more lenient than the standard in the following:

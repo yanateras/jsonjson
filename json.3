@@ -22,17 +22,19 @@ Erlang term	JSON value
 _
 .T&
 l | l.
-atom	string
+atom\fB*\fR	string
 binary	string
 false	false
-float	float
-integer	integer
+float	number
+integer	number
 list	\fIarray\fR
 map	object
 null	null
 proplist	object
 true	true
 .TE
+
+\fB*\fR Except false, null and true.
 .RE
 
 .LP
@@ -40,17 +42,37 @@ true	true
 decode(JSON) -> {ok, Term, Rest} | {error, Reason}
 .RS
 .LP
-JSON = binary() | list()
+JSON = binary() | iolist()
 .br
 Term = term()
 .br
 Rest = binary()
 .br
-Reason = atom()
+Reason = infinity
+.br
+       | invalid_escape
+.br
+       | missing_colon
+.br
+       | unexpected_token
+.br
+       | unterminated_array
+.br
+       | unterminated_exponent
+.br
+       | unterminated_fraction
+.br
+       | unterminated_integer
+.br
+       | unterminated_object
+.br
+       | unterminated_string
 
 Decode JSON value to Erlang term.
 .br
-Characters left after reading the value are returned as \fIRest\fR.
+Unconsumed characters are returned as \fIRest\fR.
+
+Failure: \fIbadarg\fR if \fIJSON\fR is neither binary() nor iolist().
 .TS
 box;
 lb | lb.
@@ -60,8 +82,7 @@ l | l.
 _
 array	list
 false	false
-float	float
-integer	integer
+number	float/integer
 null	null
 object	map
 string	binary
@@ -78,9 +99,11 @@ Decoder is more lenient than the standard in the following:
 .IP \[bu] 2
 any character =< 32 is considered whitespace
 .IP \[bu]
-commas are not enforced in arrays, and treated as any other whitespace:
+commas are treated as whitespace:
 .br
 {ok, [1,2,3,4], _} = json:decode(<<"[,,,1  2,3, ,4]">>).
+.br
+{ok, #{1:=2, 3:=4}, _} = json:decode(<<"{1:2 3:4}">>).
 .br
 {ok, [], _} = json:decode(<<"[,, ,,]">>).
 .IP \[bu]
@@ -88,29 +111,33 @@ whitespace is optional on token boundaries:
 .br
 {ok, [<<"hello">>, true, 1, null], _} = json:decode(<<"[\\"hello\\"true1null]">>).
 .IP \[bu]
-leading zeros for numbers are supported:
+numbers may contain leading zeros:
 .br
 {ok, 4, _} = json:decode(<<"0004">>).
+.br
+{ok, 1.0, _} = json:decode(<<"1e-0000">>).
 .IP \[bu]
-any JSON value can be at the top level
+numbers may be prefixed with a plus sign:
+.br
+{ok, 100, _} = json:decode(<<"+100">>).
 .IP \[bu]
 any JSON value can be used as a key, not just strings:
 .br
-{ok, #{[1] := 2}, _} = json:decode(<<"{[1]: 2}">>).
+{ok, #{[1]:=2}, _} = json:decode(<<"{[1]: 2}">>).
 .br
-{ok, #{null := <<"x">>}, _} = json:decode(<<"{null: \\"x\\"}">>).
+{ok, #{null:=<<"x">>}, _} = json:decode(<<"{null: \\"x\\"}">>).
 .IP \[bu]
 leaving bytes after the first value at the top level is OK:
 .br
 {ok, #{}, <<"[]">>} = json:decode(<<"{}[]">>).
 .RE
 
-Mind that, according to RFC 7159, key order in objects is not preserved:
-.RS
+Decoder will return an error if you decode a number with a fraction part
+and/or an exponent larger than 1.8e308 (IEEE 754-1985 double precision):
+.br
+{error, infinity} = json:decode(<<"1e1000">>).
 
-An object is an unordered collection of zero or more name/value pairs,
-where a name is a string and a value is a string, number, boolean, null, object, or array.
-.RE
+Decoder will \fInot\fR preserve key order in objects, as in RFC 7159.
 .SH SEE ALSO
 RFC 7159
 .RE

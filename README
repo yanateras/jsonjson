@@ -15,40 +15,52 @@ EXPORTS
               +------------+------------+
               |Erlang term | JSON value |
               +------------+------------+
-              |atom        | string     |
+              |atom*       | string     |
               |binary      | string     |
               |false       | false      |
-              |float       | float      |
-              |integer     | integer    |
+              |float       | number     |
+              |integer     | number     |
               |list        | array      |
               |map         | object     |
               |null        | null       |
               |proplist    | object     |
               |true        | true       |
               +------------+------------+
+              * Except false, null and true.
+
 
        decode(JSON) -> {ok, Term, Rest} | {error, Reason}
 
-              JSON = binary() | list()
+              JSON = binary() | iolist()
               Term = term()
               Rest = binary()
-              Reason = atom()
+              Reason = infinity
+                     | invalid_escape
+                     | missing_colon
+                     | unexpected_token
+                     | unterminated_array
+                     | unterminated_exponent
+                     | unterminated_fraction
+                     | unterminated_integer
+                     | unterminated_object
+                     | unterminated_string
 
               Decode JSON value to Erlang term.
-              Characters left after reading the value are returned as Rest.
+              Unconsumed characters are returned as Rest.
 
-              +-----------+-------------+
-              |JSON value | Erlang term |
-              +-----------+-------------+
-              |array      | list        |
-              |false      | false       |
-              |float      | float       |
-              |integer    | integer     |
-              |null       | null        |
-              |object     | map         |
-              |string     | binary      |
-              |true       | true        |
-              +-----------+-------------+
+              Failure: badarg if JSON is neither binary() nor iolist().
+
+              +-----------+---------------+
+              |JSON value | Erlang term   |
+              +-----------+---------------+
+              |array      | list          |
+              |false      | false         |
+              |number     | float/integer |
+              |null       | null          |
+              |object     | map           |
+              |string     | binary        |
+              |true       | true          |
+              +-----------+---------------+
 
 
 CAVEATS
@@ -58,32 +70,34 @@ CAVEATS
 
               o any character =< 32 is considered whitespace
 
-              o commas are not enforced in arrays, and treated as any
-	        other whitespace:
+              o commas are treated as whitespace:
                 {ok, [1,2,3,4], _} = json:decode(<<"[,,,1  2,3, ,4]">>).
+                {ok, #{1:=2, 3:=4}, _} = json:decode(<<"{1:2 3:4}">>).
                 {ok, [], _} = json:decode(<<"[,, ,,]">>).
 
               o whitespace is optional on token boundaries:
                 {ok, [<<"hello">>, true, 1, null], _} =
-		    json:decode(<<"[\"hello\"true1null]">>).
+                    json:decode(<<"[\"hello\"true1null]">>).
 
-              o leading zeros for numbers are supported:
+              o numbers may contain leading zeros:
                 {ok, 4, _} = json:decode(<<"0004">>).
+                {ok, 1.0, _} = json:decode(<<"1e-0000">>).
 
-              o any JSON value can be at the top level
+              o numbers may be prefixed with a plus sign:
+                {ok, 100, _} = json:decode(<<"+100">>).
 
               o any JSON value can be used as a key, not just strings:
-                {ok, #{[1] := 2}, _} = json:decode(<<"{[1]: 2}">>).
-                {ok, #{null := <<"x">>}, _} = json:decode(<<"{null: \"x\"}">>).
+                {ok, #{[1]:=2}, _} = json:decode(<<"{[1]: 2}">>).
+                {ok, #{null:=<<"x">>}, _} = json:decode(<<"{null: \"x\"}">>).
 
               o leaving bytes after the first value at the top level is OK:
                 {ok, #{}, <<"[]">>} = json:decode(<<"{}[]">>).
 
-       Mind that, according to RFC 7159, key order in objects is not preserved:
+       Decoder will return an error if you decode a number with a fraction part
+       and/or an exponent larger than 1.8e308 (IEEE 754-1985 double precision):
+       {error, infinity} = json:decode(<<"1e1000">>).
 
-              An object is an unordered collection of zero or more
-	      name/value pairs, where a name is a string and a value
-	      is a string, number, boolean, null, object, or array.
+       Decoder will not preserve key order in objects, as in RFC 7159.
 
 SEE ALSO
        RFC 7159

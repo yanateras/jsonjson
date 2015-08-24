@@ -18,12 +18,20 @@
 -define(is_exponent(X), X == $e; X == $E).
 -define(is_sign(X), X == $+; X == $-).
 
+is_proplist([]) -> true;
+is_proplist([{_,_}|L]) -> is_proplist(L);
+is_proplist(_) -> false.
+
 encode(Bin) when is_binary(Bin) -> encode_string(Bin, <<$">>);
 encode(I) when is_integer(I) -> integer_to_binary(I);
 encode(F) when is_float(F) -> io_lib:format("~p", [F]);
 encode(M) when is_map(M) -> encode_map(maps:to_list(M), []);
-encode([{_, _}, _] = Props) -> encode_map(Props, []);
-encode(L) when is_list(L) -> encode_list(L, []);
+encode([]) -> <<"[]">>;
+encode(L) when is_list(L) ->
+    case is_proplist(L) of
+        false -> encode_list(L, []);
+        true -> encode_map(L, [])
+    end;
 encode(true) -> <<"true">>;
 encode(false) -> <<"false">>;
 encode(null) -> <<"null">>;
@@ -46,7 +54,10 @@ encode_map([], Buf) -> [${, lists:reverse(Buf), $}];
 encode_map([H], Buf) -> encode_map([], [encode_pair(H) | Buf]); 
 encode_map([H|T], Buf) -> encode_map(T, [$, | [encode_pair(H) | Buf]]).
 
-encode_pair({K,V}) -> [encode(K), $:, encode(V)].
+encode_pair({K,_}) when K == false; K == null; K == true -> error(badarg);
+encode_pair({K,V}) when is_binary(K); is_atom(K) -> [encode(K), $:, encode(V)];
+encode_pair({K,V}) when is_list(K) -> encode_pair({list_to_binary(K), V});
+encode_pair(_) -> error(badarg).
 
 decode(String) when is_list(String) -> decode(list_to_binary(String));
 decode(Bin) when is_binary(Bin) ->

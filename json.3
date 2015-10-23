@@ -53,6 +53,8 @@ Reason = infinity
 .br
        | invalid_escape
 .br
+       | invalid_key
+.br
        | missing_colon
 .br
        | unexpected_token
@@ -113,12 +115,6 @@ proplists will become maps:
 .br
 {ok, #{<<"x">>:=1}, _} = json:decode(json:encode([{<<"x">>, 1}])).
 .IP \[bu] 2
-decoder will decode objects with invalid keys, but encoder won't allow it:
-.br
-{ok, Map, _} = json:decode(<<"{1: 1}">>).
-.br
-json:encode(Map). % will fail with badarg
-.IP \[bu] 2
 whitespaces won't be preserved.
 .RE
 
@@ -148,12 +144,6 @@ numbers may contain leading zeros:
 numbers may be prefixed with a plus sign:
 .br
 {ok, 100, _} = json:decode(<<"+100">>).
-.IP \[bu]
-any JSON value can be a key, not just strings:
-.br
-{ok, #{1:=2}, _} = json:decode(<<"{1: 2}">>).
-.br
-{ok, #{null:=<<"x">>}, _} = json:decode(<<"{null: \\"x\\"}">>).
 .RE
 
 Decoder will return an error if you decode a number with a fraction part

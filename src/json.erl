@@ -144,11 +144,12 @@ decode_array(Bin, List) ->
 decode_object(<<H, T/binary>>, Map) when ?is_space(H) -> decode_object(T, Map);
 decode_object(<<$}, T/binary>>, Map) -> {T, Map};
 decode_object(<<>>, _) -> error(unterminated_object);
-decode_object(Bin, Map) ->
-    {Rest1, Key} = decode_value(Bin),
+decode_object(<<$", Bin/binary>>, Map) ->
+    {Rest1, Key} = decode_string(Bin, <<>>),
     {Rest2, $:} = decode_colon(Rest1),
     {Rest3, Value} = decode_value(Rest2),
-    decode_object(Rest3, maps:put(Key, Value, Map)).
+    decode_object(Rest3, maps:put(Key, Value, Map));
+decode_object(_, _) -> error(invalid_key).
 
 decode_colon(<<$:, T/binary>>) -> {T, $:};
 decode_colon(<<H, T/binary>>) when ?is_space(H) -> decode_colon(T);

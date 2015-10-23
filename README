@@ -37,6 +37,7 @@ EXPORTS
               Rest = binary()
               Reason = infinity
                      | invalid_escape
+                     | invalid_key
                      | missing_colon
                      | unexpected_token
                      | unterminated_array
@@ -83,11 +84,6 @@ CAVEATS
                 {ok, #{<<"x">>:=1}, _} =
                 json:decode(json:encode([{<<"x">>, 1}])).
 
-              o decoder will decode objects with invalid keys, but encoder
-                won't allow it:
-                {ok, Map, _} = json:decode(<<"{1: 1}">>).
-                json:encode(Map). % will fail with badarg
-
               o whitespaces won't be preserved.
 
        Decoder is more lenient than the standard in the following:
@@ -109,10 +105,6 @@ CAVEATS
 
               o numbers may be prefixed with a plus sign:
                 {ok, 100, _} = json:decode(<<"+100">>).
-
-              o any JSON value can be a key, not just strings:
-                {ok, #{1:=2}, _} = json:decode(<<"{1: 2}">>).
-                {ok, #{null:=<<"x">>}, _} = json:decode(<<"{null: \"x\"}">>).
 
        Decoder will return an error if you decode a number with a fraction part
        and/or an exponent larger than 1.8e308 (IEEE 754-1985 double precision):

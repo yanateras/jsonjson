@@ -1,4 +1,4 @@
-.TH json 3 "v1.0.0" "Yegor Timoschenko" "Erlang Module Definition"
+.TH json 3 "v1.0.0" "Yegor Timoshenko" "Erlang Module Definition"
 .SH NAME
 .B json
 \- JSON encoder/decoder
@@ -12,9 +12,11 @@ encode(Term) -> JSON
 .LP
 Term = term()
 .br
-JSON = iolist()
+JSON = binary() | iolist()
 
 Encode Erlang term into JSON value.
+
+Failure: \fIbadarg\fR if \fITerm\fR contains maps or proplists with invalid keys.
 .TS
 box;
 lb | lb.
@@ -22,19 +24,18 @@ Erlang term	JSON value
 _
 .T&
 l | l.
-atom\fB*\fR	string
-binary	string
+atom\fB*\fR, binary	string
 false	false
-float	number
-integer	number
-list	\fIarray\fR
-map	object
+float, integer	number
+list	\fIarray\fR, string\fB^\fR
+map, proplist	object
 null	null
-proplist	object
 true	true
 .TE
 
 \fB*\fR Except false, null and true.
+.br
+\fB^\fR Map keys only.
 .RE
 
 .LP
@@ -82,17 +83,44 @@ l | l.
 _
 array	list
 false	false
-number	float/integer
+number	integer, float\fB*\fR
 null	null
 object	map
 string	binary
 true	true
 .TE
 
+\fB*\fR If exponent and/or fraction part is specified.
+
 .RE
 
 .SH CAVEATS
-Encoder will encode \fIany\fR Erlang list (including strings) as JSON array.
+Encoder will encode any Erlang list (including strings) as JSON array,
+except for map or proplist keys that will be encoded as JSON strings anyway.
+
+There are several non-idempotent operations:
+.RS
+.IP \[bu] 2
+keys in maps that were lists will become binaries:
+.br
+{ok, #{<<"x">>:=1}, _} = json:decode(json:encode(#{"x"=>1})).
+.IP \[bu] 2
+atoms except false, null and true will become binaries:
+.br
+{ok, #{<<"x">>:=1}, _} = json:decode(json:encode(#{x=>1})).
+.IP \[bu] 2
+proplists will become maps:
+.br
+{ok, #{<<"x">>:=1}, _} = json:decode(json:encode([{<<"x">>, 1}])).
+.IP \[bu] 2
+decoder will decode objects with invalid keys, but encoder won't allow it:
+.br
+{ok, Map, _} = json:decode(<<"{1: 1}">>).
+.br
+json:encode(Map). % will fail with badarg
+.IP \[bu] 2
+whitespaces won't be preserved.
+.RE
 
 Decoder is more lenient than the standard in the following:
 .RS
@@ -101,9 +129,9 @@ any character =< 32 is considered whitespace
 .IP \[bu]
 commas are treated as whitespace:
 .br
-{ok, [1,2,3,4], _} = json:decode(<<"[,,,1  2,3, ,4]">>).
+{ok, [1,2,3,4], _} = json:decode(<<",[,,,1  2,3, ,4]">>).
 .br
-{ok, #{1:=2, 3:=4}, _} = json:decode(<<"{1:2 3:4}">>).
+{ok, #{<<"x">>:=2, <<"y">>:=4}, _} = json:decode(<<"{\"x\":2 \"y\":4}">>).
 .br
 {ok, [], _} = json:decode(<<"[,, ,,]">>).
 .IP \[bu]
@@ -121,15 +149,11 @@ numbers may be prefixed with a plus sign:
 .br
 {ok, 100, _} = json:decode(<<"+100">>).
 .IP \[bu]
-any JSON value can be used as a key, not just strings:
+any JSON value can be a key, not just strings:
 .br
-{ok, #{[1]:=2}, _} = json:decode(<<"{[1]: 2}">>).
+{ok, #{1:=2}, _} = json:decode(<<"{1: 2}">>).
 .br
 {ok, #{null:=<<"x">>}, _} = json:decode(<<"{null: \\"x\\"}">>).
-.IP \[bu]
-leaving bytes after the first value at the top level is OK:
-.br
-{ok, #{}, <<"[]">>} = json:decode(<<"{}[]">>).
 .RE
 
 Decoder will return an error if you decode a number with a fraction part

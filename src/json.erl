@@ -22,6 +22,56 @@ is_proplist([]) -> true;
 is_proplist([{_,_}|L]) -> is_proplist(L);
 is_proplist(_) -> false.
 
+-spec encode(Term) -> JSON when Term :: term(), JSON :: iodata().
+%% @doc Encode Term as a JSON value.
+%%
+%% <table>
+%%   <tr>
+%%     <th>Term</th>
+%%     <th>JSON</th>
+%%   </tr>
+%%   <tr>
+%%     <td>{@type false}</td>
+%%     <td>false</td>
+%%   </tr>
+%%   <tr>
+%%     <td>{@type null}</td>
+%%     <td>null</td>
+%%   </tr>
+%%   <tr>
+%%     <td>{@type true}</td>
+%%     <td>true</td>
+%%   </tr>
+%%   <tr>
+%%     <td>{@type atom() | binary()}</td>
+%%     <td>string</td>
+%%   </tr>
+%%   <tr>
+%%     <td>{@type map() | [tuple()]}</td>
+%%     <td>object</td>
+%%   </tr>
+%%   <tr>
+%%     <td>{@type list()}</td>
+%%     <td>array</td>
+%%   </tr>
+%%   <tr>
+%%     <td>{@type number()}</td>
+%%     <td>number</td>
+%%   </tr>
+%% </table>
+%%
+%% Note that {@type string()} is treated as an array of numbers:
+%% ```
+%% <<"[106,111,101]">> = iolist_to_binary(json:encode("joe")).
+%% '''
+%%
+%% The exception is made for map and tuple keys in which case {@type string()}
+%% is handled as a JSON string. This behavior is deprecated:
+%% ```
+%% <<"{\"a\":1}">> = iolist_to_binary(json:encode(#{"a"=>1})).
+%% '''
+%%
+%% Throws {@type badarg} if map or tuple key does not encode to a JSON string.
 encode(Bin) when is_binary(Bin) -> encode_string(Bin, <<$">>);
 encode(I) when is_integer(I) -> integer_to_binary(I);
 encode(F) when is_float(F) -> io_lib:format("~p", [F]);
@@ -47,11 +97,11 @@ encode_string(<<$", T/binary>>, Buf) -> encode_string(T, <<Buf/binary, $\\, $">>
 encode_string(<<H, T/binary>>, Buf) -> encode_string(T, <<Buf/binary, H>>).
 
 encode_list([], Buf) -> [$[, lists:reverse(Buf), $]];
-encode_list([H], Buf) -> encode_list([], [encode(H) | Buf]); 
+encode_list([H], Buf) -> encode_list([], [encode(H) | Buf]);
 encode_list([H|T], Buf) -> encode_list(T, [$, | [encode(H) | Buf]]).
 
 encode_map([], Buf) -> [${, lists:reverse(Buf), $}];
-encode_map([H], Buf) -> encode_map([], [encode_pair(H) | Buf]); 
+encode_map([H], Buf) -> encode_map([], [encode_pair(H) | Buf]);
 encode_map([H|T], Buf) -> encode_map(T, [$, | [encode_pair(H) | Buf]]).
 
 encode_pair({K,_}) when K == false; K == null; K == true -> error(badarg);
@@ -59,11 +109,102 @@ encode_pair({K,V}) when is_binary(K); is_atom(K) -> [encode(K), $:, encode(V)];
 encode_pair({K,V}) when is_list(K) -> encode_pair({list_to_binary(K), V});
 encode_pair(_) -> error(badarg).
 
+-spec decode(JSON) -> {ok, Term, Rest} | {error, Reason}
+			  when JSON :: iodata(),
+			       Term :: term(),
+			       Rest :: binary(),
+			       Reason :: infinity
+				       | invalid_escape
+				       | invalid_key
+				       | missing_colon
+				       | unterminated_array
+				       | unterminated_exponent
+				       | unterminated_fraction
+				       | unterminated_integer
+				       | unterminated_object
+				       | unterminated_string.
+%% @doc Decode JSON value to Term. Unconsumed characters are returned as Rest.
+%%
+%% <table>
+%%   <tr>
+%%     <th>JSON</th>
+%%     <th>Term</th>
+%%   </tr>
+%%   <tr>
+%%     <td>array</td>
+%%     <td>{@type list()}</td>
+%%   </tr>
+%%   <tr>
+%%     <td>false</td>
+%%     <td>{@type false}</td>
+%%   </tr>
+%%   <tr>
+%%     <td>number</td>
+%%     <td>{@type number()}</td>
+%%   </tr>
+%%   <tr>
+%%     <td>null</td>
+%%     <td>{@type null}</td>
+%%   </tr>
+%%   <tr>
+%%     <td>object</td>
+%%     <td>{@type map()}</td>
+%%   </tr>
+%%   <tr>
+%%     <td>string</td>
+%%     <td>{@type binary()}</td>
+%%   </tr>
+%%   <tr>
+%%     <td>true</td>
+%%     <td>{@type true}</td>
+%%   </tr>
+%% </table>
+%%
+%% Decoding is more lenient than the standard in the following:
+%% <ul>
+%%   <li>any character less than or equal to 32 on ASCII table is treated as whitespace</li>
+%%   <li>
+%%     commas are treated as whitespace:
+%% ```
+%% {ok, [1,2,3,4], _} = json:decode(<<",[,,,1  2,3, ,4]">>).
+%% {ok, [], _} = json:decode(<<"[,, ,,]">>).
+%% '''
+%%    </li>
+%%    <li>
+%%      whitespace is optional on token boundaries:
+%% ```
+%% {ok, [<<"hello">>, true, 1, null], _} = json:decode(<<"[\"hello\"true1null]">>).
+%% '''
+%%    </li>
+%%    <li>
+%%      numbers may contain leading zeros:
+%% ```
+%% {ok, 4, _} = json:decode(<<"0004">>).
+%% {ok, 1.0, _} = json:decode(<<"1e-0000">>).
+%% '''
+%%    </li>
+%%    <li>
+%%      numbers may be prefixed with a plus sign:
+%% ```
+%% {ok, 100, _} = json:decode(<<"+100">>).
+%% '''
+%%    </li>
+%% </ul>
+%%
+%% Does not handle JSON that contains numbers with a fraction part and/or
+%% exponent larger than 1.8e308 (IEE 754-1985 double precision):
+%% ```
+%% {error, infinity} = json:decode(<<"1e1000">>).
+%% '''
+%%
+%% Does <em>not</em> preserve key order in objects, as per RFC 7159.
+%%
+%% Throws {@type badarg} if JSON is not of type {@type iodata()}.
 decode(String) when is_list(String) -> decode(list_to_binary(String));
 decode(Bin) when is_binary(Bin) ->
     try decode_value(Bin) of
         {Rest, Value} -> {ok, Value, Rest}
-    catch error:Reason -> {error, Reason} 
+    catch error:Reason -> {error, Reason}
     end;
 decode(_) -> error(badarg).
 
@@ -81,7 +222,7 @@ decode_value(<<"null", T/binary>>) -> {T, null};
 decode_value(_) -> error(unexpected_token).
 
 decode_number(Bin, Buf) ->
-    {Rest, Acc} = decode_sign(Bin, Buf), 
+    {Rest, Acc} = decode_sign(Bin, Buf),
     decode_integer(Rest, Acc).
 
 decode_integer(<<H, T/binary>>, Buf) when ?is_digit(H) -> decode_integer(T, [H|Buf]);

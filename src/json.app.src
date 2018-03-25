@@ -1,5 +1,5 @@
 {application, json, [
-  {description, "Module for encoding and decoding JSON"},
+  {description, "JSON encoder/decoder"},
   {vsn, "0.5.0"},
   {modules, [json]},
   {registered, []},

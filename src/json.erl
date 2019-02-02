@@ -61,12 +61,6 @@
 %% <<"[106,111,101]">> = iolist_to_binary(json:encode("joe")).
 %% '''
 %%
-%% The exception is made for map and tuple keys in which case {@type string()}
-%% is handled as a JSON string. This behavior is deprecated:
-%% ```
-%% <<"{\"a\":1}">> = iolist_to_binary(json:encode(#{"a"=>1})).
-%% '''
-%%
 %% Throws {@type badarg} if map or tuple key does not encode to a JSON string.
 encode(Bin) when is_binary(Bin) -> encode_string(Bin, <<$">>);
 encode(I) when is_integer(I) -> integer_to_binary(I);
@@ -91,13 +85,11 @@ encode_list([H], Buf) -> encode_list([], [encode(H) | Buf]);
 encode_list([H|T], Buf) -> encode_list(T, [$, | [encode(H) | Buf]]).
 
 encode_map([], Buf) -> [${, lists:reverse(Buf), $}];
-encode_map([H], Buf) -> encode_map([], [encode_pair(H) | Buf]);
-encode_map([H|T], Buf) -> encode_map(T, [$, | [encode_pair(H) | Buf]]).
+encode_map([H], Buf) -> encode_map([], [encode_map_pair(H) | Buf]);
+encode_map([H|T], Buf) -> encode_map(T, [$, | [encode_map_pair(H) | Buf]]).
 
-encode_pair({K,_}) when K == false; K == null; K == true -> error(badarg);
-encode_pair({K,V}) when is_binary(K); is_atom(K) -> [encode(K), $:, encode(V)];
-encode_pair({K,V}) when is_list(K) -> encode_pair({list_to_binary(K), V});
-encode_pair(_) -> error(badarg).
+encode_map_pair({K,V}) when is_binary(K) -> [encode(K), $:, encode(V)];
+encode_map_pair(_) -> error(badarg).
 
 -spec decode(JSON) -> {ok, Term, Rest} | {error, Reason}
 			  when JSON :: iodata(),

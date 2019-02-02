@@ -18,10 +18,6 @@
 -define(is_exponent(X), X == $e; X == $E).
 -define(is_sign(X), X == $+; X == $-).
 
-is_proplist([]) -> true;
-is_proplist([{_,_}|L]) -> is_proplist(L);
-is_proplist(_) -> false.
-
 -spec encode(Term) -> JSON when Term :: term(), JSON :: iodata().
 %% @doc Encode Term as a JSON value.
 %%
@@ -43,11 +39,11 @@ is_proplist(_) -> false.
 %%     <td>true</td>
 %%   </tr>
 %%   <tr>
-%%     <td>{@type atom() | binary()}</td>
+%%     <td>{@type binary()}</td>
 %%     <td>string</td>
 %%   </tr>
 %%   <tr>
-%%     <td>{@type map() | [tuple()]}</td>
+%%     <td>{@type map()}</td>
 %%     <td>object</td>
 %%   </tr>
 %%   <tr>
@@ -75,17 +71,11 @@ is_proplist(_) -> false.
 encode(Bin) when is_binary(Bin) -> encode_string(Bin, <<$">>);
 encode(I) when is_integer(I) -> integer_to_binary(I);
 encode(F) when is_float(F) -> io_lib:format("~p", [F]);
+encode(L) when is_list(L) -> encode_list(L, []);
 encode(M) when is_map(M) -> encode_map(maps:to_list(M), []);
-encode([]) -> <<"[]">>;
-encode(L) when is_list(L) ->
-    case is_proplist(L) of
-        false -> encode_list(L, []);
-        true -> encode_map(L, [])
-    end;
 encode(true) -> <<"true">>;
 encode(false) -> <<"false">>;
-encode(null) -> <<"null">>;
-encode(A) when is_atom(A) -> encode(list_to_binary(atom_to_list(A))).
+encode(null) -> <<"null">>.
 
 encode_string(<<>>, Buf) -> <<Buf/binary, $">>;
 encode_string(<<$\r, T/binary>>, Buf) -> encode_string(T, <<Buf/binary, $\\, $r>>);
